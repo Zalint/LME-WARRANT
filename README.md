@@ -2,6 +2,18 @@
 
 This comprehensive application suite provides professional calculators for reconciling P&L between Trader's view and M representation for LME Physical Warrant transactions with real market integration.
 
+## 🔐 Access Control
+
+This application is protected by authentication. Use the following credentials to access:
+
+**Login Page:** `login.html`
+
+**Credentials:**
+- **Username:** `ADMIN`
+- **Password:** `ADMIN@MXT1`
+
+> ⚠️ **Note:** This is a demonstration authentication system using session storage. For production use, implement proper backend authentication with secure password hashing and HTTPS.
+
 ## Files
 
 ### Main Application

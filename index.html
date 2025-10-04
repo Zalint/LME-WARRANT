@@ -521,6 +521,21 @@
     </style>
 </head>
 <body>
+    <script>
+        // Authentication check
+        if (sessionStorage.getItem('lme_auth_token') !== 'authenticated') {
+            window.location.href = 'login.html';
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.clear();
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+
     <nav class="navbar">
         <div class="logo">
             🔢 LME Calculator Suite
@@ -533,6 +548,7 @@
             <li><a href="lme_faq.html">FAQ</a></li>
             <li><a href="#prices">Market Prices</a></li>
             <li><a href="#about">About</a></li>
+            <li><a href="#" onclick="logout(); return false;" style="color: #fca5a5;">🚪 Logout</a></li>
         </ul>
         <div class="market-status" id="marketStatus">
             <div class="status-indicator">

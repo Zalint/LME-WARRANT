@@ -277,6 +277,13 @@
     </style>
 </head>
 <body>
+    <script>
+        // Authentication check
+        if (sessionStorage.getItem('lme_auth_token') !== 'authenticated') {
+            window.location.href = 'login.html';
+        }
+    </script>
+
     <div class="navbar">
         <a href="index.html" class="logo">🔢 LME Calculator Suite</a>
         <a href="index.html" class="back-btn">← Back to Home</a>
