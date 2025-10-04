@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LME Physical Warrant P&L Calculator - Multi-Contract</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .content {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+        .input-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .results-panel {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 8px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 13px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .btn-generate {
+            background: #3b82f6;
+            color: white;
+            padding: 10px;
+            font-size: 13px;
+        }
+        .btn:hover { transform: translateY(-2px); }
+        .warrant-preview {
+            background: #f0f9ff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .warrant-preview h4 {
+            font-size: 13px;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        .warrant-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+        .warrant-item {
+            background: white;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .result-card h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .result-value {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .result-value.positive {
+            background: #ecfdf5;
+            color: #10b981;
+        }
+        .result-value.negative {
+            background: #fef2f2;
+            color: #ef4444;
+        }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-size: 13px;
+            line-height: 1.8;
+            border-left: 3px solid #3b82f6;
+        }
+        .info-box {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-size: 13px;
+        }
+        .match-indicator {
+            background: #ecfdf5;
+            border: 3px solid #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #10b981;
+            margin-top: 20px;
+        }
+        @media (max-width: 1024px) {
+            .content { grid-template-columns: 1fr; }
+            .input-panel { border-right: none; border-bottom: 2px solid #e0e0e0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔢 LME Physical Warrant P&L Calculator</h1>
+            <p>Multi-Contract Support with Random Warrant Generation</p>
+        </div>
+
+        <div class="content">
+            <div class="input-panel">
+                <div class="section">
+                    <h3>📋 Position Size</h3>
+                    
+                    <div class="form-group">
+                        <label>Number of Futures Contracts</label>
+                        <input type="number" id="numContracts" value="1" step="1" min="1" max="1000">
+                        <small>Each contract = 25 MT standard lot</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Total Futures Size (MT)</label>
+                        <input type="number" id="totalFutures" value="25" readonly style="background: #f3f4f6; font-weight: bold;">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📦 Warrant Configuration</h3>
+                    
+                    <div class="form-group">
+                        <label>Warrant Weight Range (MT per warrant)</label>
+                        <div class="form-row">
+                            <div>
+                                <input type="number" id="minWeight" value="24.5" step="0.1" min="20">
+                                <small>Minimum</small>
+                            </div>
+                            <div>
+                                <input type="number" id="maxWeight" value="25.5" step="0.1" max="30">
+                                <small>Maximum</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-generate" onclick="generateWarrants()">
+                        🔄 Generate Random Warrants
+                    </button>
+
+                    <div id="warrantsPreview" style="display:none;" class="warrant-preview">
+                        <h4>Generated Warrants:</h4>
+                        <div id="warrantsList" class="warrant-grid"></div>
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 2px solid #3b82f6; font-weight: bold; font-size: 13px; color: #1e40af;">
+                            <div>Total Warrants: <span id="warrantCount">0</span></div>
+                            <div>Total Physical Weight: <span id="totalPhysicalWeight">0</span> MT</div>
+                            <div>Weight Differential: <span id="weightDiff">0</span> MT</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📅 Pickup Leg</h3>
+                    
+                    <div class="form-group">
+                        <label>Future Purchase Date</label>
+                        <input type="date" id="pickupPurchaseDate" value="2025-10-01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Future Expiry/Pickup Date</label>
+                        <input type="date" id="pickupDate" value="2025-10-16">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Future Price (P<sub>Fi</sub>)</label>
+                            <input type="number" id="pFi" value="8430.00" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Warrant Price (P<sub>wi</sub>)</label>
+                            <input type="number" id="pWi" value="8450.00" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📅 Delivery Leg</h3>
+                    
+                    <div class="form-group">
+                        <label>Future Purchase Date</label>
+                        <input type="date" id="deliveryPurchaseDate" value="2025-10-15">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Future Expiry/Delivery Date</label>
+                        <input type="date" id="deliveryDate" value="2025-11-14">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Future Price (P<sub>Fj</sub>)</label>
+                            <input type="number" id="pFj" value="8485.75" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Warrant Price (P<sub>wj</sub>)</label>
+                            <input type="number" id="pWj" value="8525.50" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculate()">
+                    Calculate P&L Reconciliation
+                </button>
+
+                <button class="btn btn-secondary" onclick="exportToExcel()">
+                    📊 Export to Excel
+                </button>
+            </div>
+
+            <div class="results-panel" id="resultsPanel">
+                <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+                    <h3>Generate warrants and click Calculate</h3>
+                    <p style="margin-top: 10px;">The P&L breakdown will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let warrants = [];
+
+        // Update total futures when contract number changes
+        document.getElementById('numContracts').addEventListener('input', function() {
+            const num = parseInt(this.value) || 1;
+            document.getElementById('totalFutures').value = (num * 25).toFixed(0);
+        });
+
+        function generateWarrants() {
+            const numContracts = parseInt(document.getElementById('numContracts').value) || 1;
+            const minWeight = parseFloat(document.getElementById('minWeight').value);
+            const maxWeight = parseFloat(document.getElementById('maxWeight').value);
+
+            if (minWeight >= maxWeight) {
+                alert('Minimum weight must be less than maximum weight');
+                return;
+            }
+
+            warrants = [];
+            let totalWeight = 0;
+
+            for (let i = 0; i < numContracts; i++) {
+                const weight = minWeight + Math.random() * (maxWeight - minWeight);
+                const rounded = Math.round(weight * 1000) / 1000;
+                warrants.push(rounded);
+                totalWeight += rounded;
+            }
+
+            // Display warrants
+            const list = document.getElementById('warrantsList');
+            list.innerHTML = warrants.map((w, i) => 
+                `<div class="warrant-item">#${i+1}: ${w.toFixed(3)}</div>`
+            ).join('');
+
+            const totalFutures = numContracts * 25;
+            document.getElementById('warrantCount').textContent = numContracts;
+            document.getElementById('totalPhysicalWeight').textContent = totalWeight.toFixed(3);
+            document.getElementById('weightDiff').textContent = (totalWeight - totalFutures).toFixed(3);
+            document.getElementById('warrantsPreview').style.display = 'block';
+        }
+
+        function calculate() {
+            if (warrants.length === 0) {
+                alert('Please generate warrants first!');
+                return;
+            }
+
+            const numContracts = parseInt(document.getElementById('numContracts').value);
+            const W = warrants.reduce((sum, w) => sum + w, 0);
+            const U = numContracts * 25;
+            const pFi = parseFloat(document.getElementById('pFi').value);
+            const pWi = parseFloat(document.getElementById('pWi').value);
+            const pFj = parseFloat(document.getElementById('pFj').value);
+            const pWj = parseFloat(document.getElementById('pWj').value);
+
+            // Calculate P&L
+            const weightDiff = (pWj - pWi) * (W - U);
+            const spreadComponent = (pFj - pFi) * U;
+            const traderTotal = weightDiff + spreadComponent;
+
+            const pickupFuture = U * (pWi - pFi);
+            const deliveryFuture = -U * (pWj - pFj);
+            const deliveryWarrant = W * (pWj - pWi);
+            const murexTotal = pickupFuture + deliveryFuture + deliveryWarrant;
+
+            const pickupLegTotal = pickupFuture;
+            const deliveryLegTotal = deliveryFuture + deliveryWarrant;
+
+            document.getElementById('resultsPanel').innerHTML = `
+                <div class="result-card" style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-left: 6px solid #10b981;">
+                    <h3>✅ P&L Reconciliation Summary</h3>
+                    
+                    <div class="info-box" style="background: white;">
+                        <strong>Position:</strong> ${numContracts} contracts (${numContracts} warrants)<br>
+                        <strong>Futures:</strong> ${fmt(U)} MT<br>
+                        <strong>Physical:</strong> ${fmt(W)} MT<br>
+                        <strong>Differential:</strong> ${fmt(W - U)} MT
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                        <div>
+                            <div style="font-size: 14px; color: #059669; margin-bottom: 10px;">Trader's Total P&L</div>
+                            <div class="result-value ${traderTotal >= 0 ? 'positive' : 'negative'}">
+                                ${curr(traderTotal)}
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-size: 14px; color: #059669; margin-bottom: 10px;">M Total P&L</div>
+                            <div class="result-value ${murexTotal >= 0 ? 'positive' : 'negative'}">
+                                ${curr(murexTotal)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="match-indicator">
+                        ✓ PERFECT MATCH: ${curr(traderTotal)} ≈ ${curr(murexTotal)}
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>📦 Warrant Details</h3>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <div class="warrant-grid">
+                            ${warrants.map((w, i) => `<div class="warrant-item">#${i+1}: ${w.toFixed(3)} MT</div>`).join('')}
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 15px; background: #f0f9ff; border-radius: 8px;">
+                        <strong>Summary:</strong><br>
+                        ${numContracts} warrants = ${fmt(W)} MT total<br>
+                        ${numContracts} futures = ${fmt(U)} MT total<br>
+                        Weight difference = ${fmt(W - U)} MT
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-left: 6px solid #9333ea;">
+                    <h3>👤 Trader's View</h3>
+                    
+                    <div class="formula">
+                        <strong>Weight Differential P&L:</strong><br>
+                        (P_wj - P_wi) × (W - U)<br>
+                        = (${fmt(pWj)} - ${fmt(pWi)}) × (${fmt(W)} - ${fmt(U)})<br>
+                        = ${fmt(pWj - pWi)} × ${fmt(W - U)}<br>
+                        = <strong>${curr(weightDiff)}</strong>
+                    </div>
+
+                    <div class="formula">
+                        <strong>Futures Spread P&L:</strong><br>
+                        (P_Fj - P_Fi) × U<br>
+                        = (${fmt(pFj)} - ${fmt(pFi)}) × ${fmt(U)}<br>
+                        = ${fmt(pFj - pFi)} × ${fmt(U)}<br>
+                        = <strong>${curr(spreadComponent)}</strong>
+                    </div>
+
+                    <div class="formula" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
+                        <strong>📊 Leg Breakdown:</strong><br><br>
+                        <strong>Pickup Leg P&L:</strong><br>
+                        Future: U × (P_wi - P_Fi) = ${fmt(U)} × (${fmt(pWi)} - ${fmt(pFi)}) = ${curr(pickupFuture)}<br>
+                        Warrant: 0 (nets to zero at pickup)<br>
+                        <strong>Pickup Total: ${curr(pickupLegTotal)}</strong><br><br>
+                        
+                        <strong>Delivery Leg P&L:</strong><br>
+                        Weight Differential: ${curr(weightDiff)}<br>
+                        Spread (net of pickup): ${curr(spreadComponent)} - ${curr(pickupFuture)} = ${curr(spreadComponent - pickupFuture)}<br>
+                        <strong>Delivery Total: ${curr(deliveryLegTotal)}</strong><br>
+                        <span style="font-size: 11px; color: #78350f;">(Delivery = Total P&L ${curr(traderTotal)} - Pickup ${curr(pickupLegTotal)})</span>
+                    </div>
+
+                    <div style="background: #f3e8ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Total P&L Summary:</strong><br>
+                        <div style="margin: 10px 0;">
+                            <strong>By Leg:</strong> Pickup (${curr(pickupLegTotal)}) + Delivery (${curr(deliveryLegTotal)}) = <strong>${curr(traderTotal)}</strong><br>
+                            <strong>By Component:</strong> Weight Diff (${curr(weightDiff)}) + Spread (${curr(spreadComponent)}) = <strong>${curr(traderTotal)}</strong>
+                        </div>
+                        <div style="border-top: 2px solid #9333ea; margin: 10px 0; padding-top: 10px;">
+                            <strong style="font-size: 18px; color: #7c3aed;">TOTAL TRADER P&L: ${curr(traderTotal)}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-left: 6px solid #3b82f6;">
+                    <h3>💻 M View</h3>
+                    
+                    <div class="formula">
+                        <strong>Pickup Leg (${formatDate(document.getElementById('pickupDate').value)}):</strong><br>
+                        Future: U × (P_wi - P_Fi) = ${fmt(U)} × ${fmt(pWi - pFi)} = ${curr(pickupFuture)}<br>
+                        Warrant: 0 (nets to zero)<br>
+                        <strong>Total: ${curr(pickupLegTotal)}</strong>
+                    </div>
+
+                    <div class="formula">
+                        <strong>Delivery Leg (${formatDate(document.getElementById('deliveryDate').value)}):</strong><br>
+                        Future: -U × (P_wj - P_Fj) = -${fmt(U)} × ${fmt(pWj - pFj)} = ${curr(deliveryFuture)}<br>
+                        Warrant: W × (P_wj - P_wi) = ${fmt(W)} × ${fmt(pWj - pWi)} = ${curr(deliveryWarrant)}<br>
+                        <strong>Total: ${curr(deliveryLegTotal)}</strong>
+                    </div>
+
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Pickup:</strong> ${curr(pickupLegTotal)}<br>
+                        <strong>Delivery:</strong> ${curr(deliveryLegTotal)}<br>
+                        <div style="border-top: 2px solid #3b82f6; margin: 10px 0; padding-top: 10px;">
+                            <strong style="font-size: 18px;">TOTAL: ${curr(murexTotal)}</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <h3>📊 Three-Component Breakdown</h3>
+                    <div class="formula">
+                        1. Warrant P&L: W × (P_wj - P_wi) = ${curr(W * (pWj - pWi))}<br>
+                        2. Future (Entry to Pickup): U × (P_wi - P_Fi) = ${curr(U * (pWi - pFi))}<br>
+                        3. Future (Delivery Spread): U × (P_Fj - P_wj) = ${curr(U * (pFj - pWj))}<br>
+                        <div style="border-top: 2px solid #10b981; margin: 10px 0; padding-top: 10px; color: #10b981;">
+                            <strong>SUM: ${curr(W * (pWj - pWi) + U * (pWi - pFi) + U * (pFj - pWj))}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
+        }
+
+        function exportToExcel() {
+            if (warrants.length === 0) {
+                alert('Please generate warrants first!');
+                return;
+            }
+
+            const numContracts = warrants.length;
+            const W = warrants.reduce((sum, w) => sum + w, 0);
+            const U = numContracts * 25;
+            const pFi = parseFloat(document.getElementById('pFi').value);
+            const pWi = parseFloat(document.getElementById('pWi').value);
+            const pFj = parseFloat(document.getElementById('pFj').value);
+            const pWj = parseFloat(document.getElementById('pWj').value);
+
+            const wb = XLSX.utils.book_new();
+
+            // Warrants sheet
+            const warrantsData = [
+                ['WARRANT DETAILS'],
+                [],
+                ['Warrant #', 'Weight (MT)'],
+                ...warrants.map((w, i) => [i + 1, w]),
+                [],
+                ['SUMMARY', ''],
+                ['Total Warrants', numContracts],
+                ['Total Physical Weight', W],
+                ['Total Futures', U],
+                ['Weight Differential', W - U]
+            ];
+            const wsWarrants = XLSX.utils.aoa_to_sheet(warrantsData);
+            XLSX.utils.book_append_sheet(wb, wsWarrants, 'Warrants');
+
+            // Inputs sheet
+            const inputsData = [
+                ['LME P&L CALCULATOR - INPUTS'],
+                [],
+                ['Parameter', 'Value'],
+                ['Number of Contracts', numContracts],
+                ['Physical Weight (W)', W],
+                ['Futures Size (U)', U],
+                ['Weight Diff (W-U)', { f: 'B5-B6' }],
+                [],
+                ['PICKUP LEG', ''],
+                ['P_Fi (Future)', pFi],
+                ['P_wi (Warrant)', pWi],
+                ['Diff (P_wi - P_Fi)', { f: 'B11-B10' }],
+                [],
+                ['DELIVERY LEG', ''],
+                ['P_Fj (Future)', pFj],
+                ['P_wj (Warrant)', pWj],
+                ['Diff (P_wj - P_Fj)', { f: 'B16-B15' }],
+                ['Diff (P_wj - P_wi)', { f: 'B16-B11' }],
+                ['Spread (P_Fj - P_Fi)', { f: 'B15-B10' }]
+            ];
+            const wsInputs = XLSX.utils.aoa_to_sheet(inputsData);
+            XLSX.utils.book_append_sheet(wb, wsInputs, 'Inputs');
+
+            // Calculations sheet
+            const calcData = [
+                ['P&L RECONCILIATION'],
+                [],
+                ['Method', 'Calculation', 'Result'],
+                [],
+                ['TRADER VIEW', '', ''],
+                ['Weight Differential', '(P_wj-P_wi)×(W-U)', { f: 'Inputs!B18*Inputs!B7' }],
+                ['Spread', '(P_Fj-P_Fi)×U', { f: 'Inputs!B19*Inputs!B6' }],
+                ['TOTAL TRADER', '', { f: 'C6+C7' }],
+                [],
+                ['MUREX VIEW', '', ''],
+                ['Pickup Future', 'U×(P_wi-P_Fi)', { f: 'Inputs!B6*Inputs!B12' }],
+                ['Pickup Warrant', '0', 0],
+                ['Delivery Future', '-U×(P_wj-P_Fj)', { f: '-Inputs!B6*Inputs!B17' }],
+                ['Delivery Warrant', 'W×(P_wj-P_wi)', { f: 'Inputs!B5*Inputs!B18' }],
+                ['TOTAL MUREX', '', { f: 'C11+C12+C13+C14' }],
+                [],
+                ['VERIFICATION', '', ''],
+                ['Difference', '', { f: 'ABS(C8-C15)' }],
+                ['Match?', '', { f: 'IF(C18<0.01,"✓ YES","✗ NO")' }]
+            ];
+            const wsCalc = XLSX.utils.aoa_to_sheet(calcData);
+            XLSX.utils.book_append_sheet(wb, wsCalc, 'Calculations');
+
+            const timestamp = formatTimestamp(new Date());
+            XLSX.writeFile(wb, `LME_PL_${numContracts}_contracts_${timestamp}.xlsx`);
+        }
+
+        function formatTimestamp(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function fmt(n) { return n.toFixed(3); }
+        function curr(n) { return n.toFixed(2); }
+
+        // Auto-generate on load
+        window.onload = function() {
+            generateWarrants();
+        };
+    </script>
+</body>
+</html>

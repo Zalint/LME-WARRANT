@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LME Physical Warrant P&L Calculator</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .content {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 0;
+        }
+        .input-panel {
+            background: #f8f9fa;
+            padding: 30px;
+            border-right: 2px solid #e0e0e0;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .results-panel {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .section h3 {
+            color: #2a5298;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border-bottom: 2px solid #2a5298;
+            padding-bottom: 8px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 13px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        .formula {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            border-left: 3px solid #cbd5e1;
+        }
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔢 LME Physical Warrant P&L Calculator</h1>
+            <p>Reconciliation Between Trader View and M Representation</p>
+        </div>
+
+        <div class="content">
+            <div class="input-panel">
+                <div class="section">
+                    <h3>📋 Trade Parameters</h3>
+                    
+                    <div class="form-group">
+                        <label>Physical Warrant Weight (MT)</label>
+                        <input type="number" id="weight" value="24.794" step="0.001" min="0">
+                        <small>Enter the actual warrant weight manually</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Standard Lot Size (MT)</label>
+                        <input type="number" id="lotSize" value="25" step="0.001" min="0">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📅 Pickup Leg</h3>
+                    
+                    <div class="form-group">
+                        <label>Future Purchase Date</label>
+                        <input type="date" id="pickupPurchaseDate" value="2025-10-01">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Future Expiry/Pickup Date</label>
+                        <input type="date" id="pickupDate" value="2025-10-16">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Future Price (P<sub>Fi</sub>)</label>
+                            <input type="number" id="pFi" value="8430.00" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Warrant Price (P<sub>wi</sub>)</label>
+                            <input type="number" id="pWi" value="8450.00" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3>📅 Delivery Leg</h3>
+                    
+                    <div class="form-group">
+                        <label>Future Purchase Date</label>
+                        <input type="date" id="deliveryPurchaseDate" value="2025-10-15">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Future Expiry/Delivery Date</label>
+                        <input type="date" id="deliveryDate" value="2025-11-14">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Future Price (P<sub>Fj</sub>)</label>
+                            <input type="number" id="pFj" value="8485.75" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Warrant Price (P<sub>wj</sub>)</label>
+                            <input type="number" id="pWj" value="8525.50" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculate()">
+                    Calculate P&L Reconciliation
+                </button>
+
+                <button class="btn btn-success" onclick="exportToExcel()">
+                    📊 Export to Excel (with Formulas)
+                </button>
+            </div>
+
+            <div class="results-panel" id="resultsPanel">
+                <div style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+                    <h3>Enter parameters and click Calculate</h3>
+                    <p style="font-size: 14px; margin-top: 10px;">The P&L breakdown will appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // LME Trading Calendar Data (2025-2035)
+        const LME_HOLIDAYS = {
+            2025: [
+                '2025-01-01', // New Year's Day
+                '2025-04-18', // Good Friday
+                '2025-04-21', // Easter Monday
+                '2025-05-05',  // May Day
+                '2025-05-26',  // Spring Bank Holiday
+                '2025-08-25',  // Summer Bank Holiday
+                '2025-12-25',  // Christmas Day
+                '2025-12-26'   // Boxing Day
+            ],
+            2026: [
+                '2026-01-01', '2026-04-03', '2026-04-06', '2026-05-04',
+                '2026-05-25', '2026-08-31', '2026-12-25', '2026-12-28'
+            ],
+            2027: [
+                '2027-01-01', '2027-03-26', '2027-03-29', '2027-05-03',
+                '2027-05-31', '2027-08-30', '2027-12-27', '2027-12-28'
+            ],
+            2028: [
+                '2028-01-03', '2028-04-14', '2028-04-17', '2028-05-01',
+                '2028-05-29', '2028-08-28', '2028-12-25', '2028-12-26'
+            ],
+            2029: [
+                '2029-01-01', '2029-03-30', '2029-04-02', '2029-05-07',
+                '2029-05-28', '2029-08-27', '2029-12-25', '2029-12-26'
+            ],
+            2030: [
+                '2030-01-01', '2030-04-19', '2030-04-22', '2030-05-06',
+                '2030-05-27', '2030-06-19', '2030-08-26', '2030-12-25', '2030-12-26'
+            ]
+        };
+
+        // LME Trading Times
+        const LME_TRADING_TIMES = {
+            ring: { start: '11:40', end: '17:00' },
+            lmeselect: { start: '01:00', end: '19:00' },
+            interOffice: '24 hours'
+        };
+
+        // Prompt Date Rules
+        const PROMPT_DATE_RULES = {
+            daily: { min: 0, max: 90 }, // Cash to 3 months forward
+            weekly: { min: 90, max: 180 }, // 3 to 6 months forward
+            monthly: { min: 180, max: 380 } // 7 to 12.3 months
+        };
+
+        function isBusinessDay(date) {
+            const dayOfWeek = date.getDay();
+            return dayOfWeek !== 0 && dayOfWeek !== 6; // Not Sunday (0) or Saturday (6)
+        }
+
+        function isLMETradingDay(dateStr) {
+            const date = new Date(dateStr);
+            const year = date.getFullYear();
+            
+            // Check if it's a weekend
+            if (!isBusinessDay(date)) return false;
+            
+            // Check if it's a holiday
+            const holidays = LME_HOLIDAYS[year] || [];
+            return !holidays.includes(dateStr);
+        }
+
+        function getNextTradingDay(dateStr) {
+            let date = new Date(dateStr);
+            do {
+                date.setDate(date.getDate() + 1);
+            } while (!isLMETradingDay(formatDateISO(date)));
+            return formatDateISO(date);
+        }
+
+        function formatDateISO(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatDateUserPreference(dateStr) {
+            if (!dateStr) return '';
+            const [year, month, day] = dateStr.split('-');
+            return `${day}-${month}-${year}`; // DD-MM-YYYY format as per user preference
+        }
+
+        function validatePromptDate(dateStr, referenceDate = new Date()) {
+            if (!dateStr) return { valid: false, message: 'Date required' };
+            
+            const targetDate = new Date(dateStr);
+            const refDate = new Date(referenceDate);
+            const diffDays = Math.floor((targetDate - refDate) / (1000 * 60 * 60 * 24));
+            
+            const validation = {
+                valid: true,
+                message: '',
+                isTradingDay: isLMETradingDay(dateStr),
+                daysDiff: diffDays,
+                promptType: null
+            };
+            
+            // Determine prompt type
+            if (diffDays <= PROMPT_DATE_RULES.daily.max) {
+                validation.promptType = 'daily';
+            } else if (diffDays <= PROMPT_DATE_RULES.weekly.max) {
+                validation.promptType = 'weekly';
+            } else if (diffDays <= PROMPT_DATE_RULES.monthly.max) {
+                validation.promptType = 'monthly';
+            } else {
+                validation.promptType = '2nd business day';
+            }
+            
+            if (!validation.isTradingDay) {
+                validation.valid = false;
+                validation.message = `⚠️ Non-trading day. Next trading day: ${formatDateUserPreference(getNextTradingDay(dateStr))}`;
+            } else {
+                validation.message = `✅ Valid ${validation.promptType} prompt date (${diffDays} days forward)`;
+            }
+            
+            return validation;
+        }
+
+        function getCurrentMarketStatus() {
+            const now = new Date();
+            const londonTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/London"}));
+            const hours = londonTime.getHours();
+            const minutes = londonTime.getMinutes();
+            const currentTime = hours * 60 + minutes;
+            
+            const ringStart = 11 * 60 + 40; // 11:40
+            const ringEnd = 17 * 60; // 17:00
+            const selectStart = 1 * 60; // 01:00
+            const selectEnd = 19 * 60; // 19:00
+            
+            let status = '🔴 Closed';
+            let details = 'All markets closed';
+            
+            if (currentTime >= selectStart && currentTime < selectEnd) {
+                status = '🟢 LMEselect Open';
+                details = 'Electronic trading active (01:00-19:00 London)';
+            }
+            
+            if (currentTime >= ringStart && currentTime < ringEnd) {
+                status = '🟡 Ring + Select Open';
+                details = 'Ring trading + Electronic trading (11:40-17:00 London)';
+            }
+            
+            // Inter-office is always available
+            const interOfficeStatus = '📞 Inter-office: 24 hours';
+            
+            return { status, details, interOffice: interOfficeStatus, londonTime };
+        }
+
+        function addDateValidation() {
+            const dateInputs = ['pickupPurchaseDate', 'pickupDate', 'deliveryPurchaseDate', 'deliveryDate'];
+            
+            dateInputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                const container = input.parentElement;
+                
+                // Add validation display element
+                let validationDiv = container.querySelector('.date-validation');
+                if (!validationDiv) {
+                    validationDiv = document.createElement('div');
+                    validationDiv.className = 'date-validation';
+                    validationDiv.style.cssText = 'font-size: 11px; margin-top: 5px; padding: 5px; border-radius: 4px;';
+                    container.appendChild(validationDiv);
+                }
+                
+                // Add event listener
+                input.addEventListener('change', function() {
+                    const validation = validatePromptDate(this.value);
+                    
+                    if (validation.valid) {
+                        validationDiv.style.background = '#ecfdf5';
+                        validationDiv.style.color = '#059669';
+                        validationDiv.style.border = '1px solid #10b981';
+                    } else {
+                        validationDiv.style.background = '#fef2f2';
+                        validationDiv.style.color = '#dc2626';
+                        validationDiv.style.border = '1px solid #ef4444';
+                    }
+                    
+                    validationDiv.innerHTML = validation.message;
+                });
+                
+                // Trigger initial validation if value exists
+                if (input.value) {
+                    input.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+
+        function addMarketStatusDisplay() {
+            const header = document.querySelector('.header');
+            const marketStatus = getCurrentMarketStatus();
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.id = 'market-status';
+            statusDiv.style.cssText = 'margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px;';
+            statusDiv.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong>${marketStatus.status}</strong><br>
+                        <small>${marketStatus.details}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>${marketStatus.interOffice}</div>
+                        <div style="font-size: 10px; opacity: 0.8;">London: ${marketStatus.londonTime.toLocaleTimeString('en-GB', {hour12: false})}</div>
+                    </div>
+                </div>
+            `;
+            header.appendChild(statusDiv);
+            
+            // Update every minute
+            setInterval(() => {
+                const newStatus = getCurrentMarketStatus();
+                document.getElementById('market-status').innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${newStatus.status}</strong><br>
+                            <small>${newStatus.details}</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <div>${newStatus.interOffice}</div>
+                            <div style="font-size: 10px; opacity: 0.8;">London: ${newStatus.londonTime.toLocaleTimeString('en-GB', {hour12: false})}</div>
+                        </div>
+                    </div>
+                `;
+            }, 60000);
+        }
+
+        function calculate() {
+            const W = parseFloat(document.getElementById('weight').value);
+            const U = parseFloat(document.getElementById('lotSize').value);
+            const pFi = parseFloat(document.getElementById('pFi').value);
+            const pWi = parseFloat(document.getElementById('pWi').value);
+            const pFj = parseFloat(document.getElementById('pFj').value);
+            const pWj = parseFloat(document.getElementById('pWj').value);
+            
+            const pickupPurchaseDate = document.getElementById('pickupPurchaseDate').value;
+            const pickupDate = document.getElementById('pickupDate').value;
+            const deliveryPurchaseDate = document.getElementById('deliveryPurchaseDate').value;
+            const deliveryDate = document.getElementById('deliveryDate').value;
+
+            // Trader's P&L
+            const weightDiff = (pWj - pWi) * (W - U);
+            const spreadComponent = (pFj - pFi) * U;
+            const traderTotal = weightDiff + spreadComponent;
+
+            // M P&L
+            const pickupFuture = U * (pWi - pFi);
+            const pickupWarrant = 0;
+            const pickupLegTotal = pickupFuture + pickupWarrant;
+            
+            const deliveryFuture = -U * (pWj - pFj);
+            const deliveryWarrant = W * (pWj - pWi);
+            const deliveryLegTotal = deliveryFuture + deliveryWarrant;
+            
+            const murexTotal = pickupLegTotal + deliveryLegTotal;
+
+            // Validate all dates
+            const pickupPurchaseValidation = validatePromptDate(pickupPurchaseDate);
+            const pickupDateValidation = validatePromptDate(pickupDate);
+            const deliveryPurchaseValidation = validatePromptDate(deliveryPurchaseDate);
+            const deliveryDateValidation = validatePromptDate(deliveryDate);
+
+            const fmt = (n) => n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            const curr = (n) => (n >= 0 ? '' : '') + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+            // Add trading calendar info to results
+            const calendarInfo = `
+                <div class="result-card" style="border-left: 6px solid #06b6d4;">
+                    <h3>📅 LME Trading Calendar Validation</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <h4 style="color: #0891b2; margin-bottom: 10px;">Pickup Leg Dates</h4>
+                            <div style="margin-bottom: 8px;">
+                                <strong>Purchase Date (${formatDateUserPreference(pickupPurchaseDate)}):</strong>
+                                <div style="font-size: 11px; ${pickupPurchaseValidation.valid ? 'color: #059669' : 'color: #dc2626'};">
+                                    ${pickupPurchaseValidation.message}
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Expiry Date (${formatDateUserPreference(pickupDate)}):</strong>
+                                <div style="font-size: 11px; ${pickupDateValidation.valid ? 'color: #059669' : 'color: #dc2626'};">
+                                    ${pickupDateValidation.message}
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color: #0891b2; margin-bottom: 10px;">Delivery Leg Dates</h4>
+                            <div style="margin-bottom: 8px;">
+                                <strong>Purchase Date (${formatDateUserPreference(deliveryPurchaseDate)}):</strong>
+                                <div style="font-size: 11px; ${deliveryPurchaseValidation.valid ? 'color: #059669' : 'color: #dc2626'};">
+                                    ${deliveryPurchaseValidation.message}
+                                </div>
+                            </div>
+                            <div>
+                                <strong>Expiry Date (${formatDateUserPreference(deliveryDate)}):</strong>
+                                <div style="font-size: 11px; ${deliveryDateValidation.valid ? 'color: #059669' : 'color: #dc2626'};">
+                                    ${deliveryDateValidation.message}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; background: #f0f9ff; padding: 10px; border-radius: 6px;">
+                        <small><strong>LME Prompt Date Rules:</strong><br>
+                        • Daily: Cash to 3 months forward (0-90 days)<br>
+                        • Weekly: 3 to 6 months forward (90-180 days)<br>
+                        • Monthly: 7 to 12.3 months forward (180-380 days)<br>
+                        • 2nd Business Day: 4 to 24 months forward (380+ days)</small>
+                    </div>
+                </div>
+            `;
+
+            const html = `
+                ${calendarInfo}
+                <div class="result-card" style="border-left: 6px solid #10b981;">
+                    <h3>✅ P&L Summary</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="text-align: center; padding: 20px; background: #f0fdf4; border-radius: 8px;">
+                            <div style="font-size: 12px; color: #059669; margin-bottom: 5px;">Trader P&L</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${traderTotal >= 0 ? '#10b981' : '#ef4444'};">
+                                ${curr(traderTotal)}
+                            </div>
+                        </div>
+                        <div style="text-align: center; padding: 20px; background: #eff6ff; border-radius: 8px;">
+                            <div style="font-size: 12px; color: #2563eb; margin-bottom: 5px;">M P&L</div>
+                            <div style="font-size: 24px; font-weight: bold; color: ${murexTotal >= 0 ? '#10b981' : '#ef4444'};">
+                                ${curr(murexTotal)}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; padding: 15px; background: #ecfdf5; border: 2px solid #10b981; border-radius: 8px; text-align: center;">
+                        <strong style="color: #059669;">✓ PERFECT MATCH</strong><br>
+                        <small>Difference: ${curr(Math.abs(traderTotal - murexTotal))}</small>
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-left: 6px solid #9333ea;">
+                    <h3>👤 Trader's View <span class="badge" style="background: #ddd6fe; color: #5b21b6;">Conceptual</span></h3>
+                    
+                    <div class="formula">
+                        <strong>Component 1: Weight Differential P&L</strong><br>
+                        (P_wj - P_wi) × (W - U)<br>
+                        = (${fmt(pWj)} - ${fmt(pWi)}) × (${fmt(W)} - ${fmt(U)})<br>
+                        = ${fmt(pWj - pWi)} × ${fmt(W - U)}<br>
+                        = <strong style="color: ${weightDiff >= 0 ? '#10b981' : '#ef4444'};">${curr(weightDiff)}</strong>
+                    </div>
+
+                    <div class="formula">
+                        <strong>Component 2: Futures Spread P&L (Entry to Exit)</strong><br>
+                        (P_Fj - P_Fi) × U<br>
+                        = (${fmt(pFj)} - ${fmt(pFi)}) × ${fmt(U)}<br>
+                        = ${fmt(pFj - pFi)} × ${fmt(U)}<br>
+                        = <strong style="color: ${spreadComponent >= 0 ? '#10b981' : '#ef4444'};">${curr(spreadComponent)}</strong>
+                    </div>
+
+                    <div class="formula" style="background: #fef3c7; border-left: 4px solid #f59e0b;">
+                        <strong>📊 Leg Breakdown:</strong><br><br>
+                        <strong>Pickup Leg P&L:</strong><br>
+                        Future: U × (P_wi - P_Fi) = ${fmt(U)} × ${fmt(pWi - pFi)} = <strong>${curr(pickupFuture)}</strong><br>
+                        Warrant: 0 (nets to zero at pickup)<br>
+                        <strong style="color: #7c3aed;">Pickup Total: ${curr(pickupLegTotal)}</strong><br><br>
+                        
+                        <strong>Delivery Leg P&L:</strong><br>
+                        <div style="background: #fff; padding: 10px; border-radius: 6px; margin: 8px 0; border: 1px solid #f59e0b;">
+                            <strong>Weight Differential: ${curr(weightDiff)}</strong><br>
+                            <small style="color: #78350f;">
+                                Detailed breakdown:<br>
+                                • Warrant price change: (P_wj - P_wi) = ${fmt(pWj)} - ${fmt(pWi)} = ${fmt(pWj - pWi)}<br>
+                                • Weight shortage: (W - U) = ${fmt(W)} - ${fmt(U)} = ${fmt(W - U)} MT<br>
+                                • Impact: ${fmt(pWj - pWi)} × ${fmt(W - U)} = <strong>${curr(weightDiff)}</strong><br>
+                                ${W < U ? '⚠️ Loss: Short ' + fmt(Math.abs(W - U)) + ' MT during price increase of ' + fmt(pWj - pWi) : '✓ Gain: Long ' + fmt(W - U) + ' MT during price change'}
+                            </small>
+                        </div>
+                        Spread (net of pickup): ${curr(spreadComponent)} - ${curr(pickupFuture)} = <strong>${curr(spreadComponent - pickupFuture)}</strong><br>
+                        <strong style="color: #7c3aed;">Delivery Total: ${curr(deliveryLegTotal)}</strong><br>
+                        <small style="color: #78350f;">(Delivery = Total ${curr(traderTotal)} - Pickup ${curr(pickupLegTotal)})</small>
+                    </div>
+
+                    <div style="background: #f3e8ff; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Total P&L Summary:</strong><br>
+                        <strong>By Leg:</strong> Pickup (${curr(pickupLegTotal)}) + Delivery (${curr(deliveryLegTotal)}) = <strong>${curr(traderTotal)}</strong><br>
+                        <strong>By Component:</strong> Weight Diff (${curr(weightDiff)}) + Spread (${curr(spreadComponent)}) = <strong>${curr(traderTotal)}</strong>
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-left: 6px solid #3b82f6;">
+                    <h3>💻 M View <span class="badge" style="background: #dbeafe; color: #1e40af;">System</span></h3>
+                    
+                    <div class="formula">
+                        <strong>Pickup Leg (${formatDate(pickupDate)}):</strong><br>
+                        Future: U × (P_wi - P_Fi) = ${fmt(U)} × ${fmt(pWi - pFi)} = <strong>${curr(pickupFuture)}</strong><br>
+                        Warrant: 0 (nets to zero)<br>
+                        <strong style="color: #2563eb;">Pickup Total: ${curr(pickupLegTotal)}</strong>
+                    </div>
+
+                    <div class="formula">
+                        <strong>Delivery Leg (${formatDate(deliveryDate)}):</strong><br>
+                        Future: -U × (P_wj - P_Fj) = -${fmt(U)} × ${fmt(pWj - pFj)} = <strong>${curr(deliveryFuture)}</strong><br>
+                        Warrant Realized: W × (P_wj - P_wi) = ${fmt(W)} × ${fmt(pWj - pWi)} = <strong>${curr(deliveryWarrant)}</strong><br>
+                        <strong style="color: #2563eb;">Delivery Total: ${curr(deliveryLegTotal)}</strong>
+                    </div>
+
+                    <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                        <strong>Total M P&L:</strong><br>
+                        Pickup (${curr(pickupLegTotal)}) + Delivery (${curr(deliveryLegTotal)}) = <strong style="font-size: 18px; color: #1e40af;">${curr(murexTotal)}</strong>
+                    </div>
+                </div>
+
+                <div class="result-card" style="border-left: 6px solid #f59e0b;">
+                    <h3>📊 Detailed Calculation Verification</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid #e5e7eb;">Component</th>
+                                <th style="padding: 10px; text-align: right; border-bottom: 2px solid #e5e7eb;">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Weight Differential</td>
+                                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #e5e7eb; font-family: monospace;">${curr(weightDiff)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Spread Component</td>
+                                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #e5e7eb; font-family: monospace;">${curr(spreadComponent)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Pickup Future</td>
+                                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #e5e7eb; font-family: monospace;">${curr(pickupFuture)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Delivery Future</td>
+                                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #e5e7eb; font-family: monospace;">${curr(deliveryFuture)}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Delivery Warrant</td>
+                                <td style="padding: 8px; text-align: right; border-bottom: 1px solid #e5e7eb; font-family: monospace;">${curr(deliveryWarrant)}</td>
+                            </tr>
+                            <tr style="background: #f0fdf4; font-weight: bold;">
+                                <td style="padding: 10px;">PICKUP LEG TOTAL</td>
+                                <td style="padding: 10px; text-align: right; font-family: monospace;">${curr(pickupLegTotal)}</td>
+                            </tr>
+                            <tr style="background: #f0fdf4; font-weight: bold;">
+                                <td style="padding: 10px;">DELIVERY LEG TOTAL</td>
+                                <td style="padding: 10px; text-align: right; font-family: monospace;">${curr(deliveryLegTotal)}</td>
+                            </tr>
+                            <tr style="background: #ecfdf5; font-weight: bold; font-size: 16px;">
+                                <td style="padding: 12px; border-top: 3px solid #10b981;">TOTAL P&L</td>
+                                <td style="padding: 12px; text-align: right; font-family: monospace; color: #059669; border-top: 3px solid #10b981;">${curr(traderTotal)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            document.getElementById('resultsPanel').innerHTML = html;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-GB', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric' 
+            });
+        }
+
+        function exportToExcel() {
+            const W = parseFloat(document.getElementById('weight').value);
+            const U = parseFloat(document.getElementById('lotSize').value);
+            const pFi = parseFloat(document.getElementById('pFi').value);
+            const pWi = parseFloat(document.getElementById('pWi').value);
+            const pFj = parseFloat(document.getElementById('pFj').value);
+            const pWj = parseFloat(document.getElementById('pWj').value);
+            const pickupPurchaseDate = document.getElementById('pickupPurchaseDate').value;
+            const pickupDate = document.getElementById('pickupDate').value;
+            const deliveryPurchaseDate = document.getElementById('deliveryPurchaseDate').value;
+            const deliveryDate = document.getElementById('deliveryDate').value;
+
+            const wb = XLSX.utils.book_new();
+
+            // Inputs Sheet with LME Trading Calendar validation
+            const inputsData = [
+                ['LME PHYSICAL WARRANT P&L CALCULATOR - INPUTS'],
+                [],
+                ['Parameter', 'Symbol', 'Value', 'Unit', 'LME Trading Status'],
+                ['Physical Warrant Weight', 'W', W, 'MT', ''],
+                ['Standard Lot Size', 'U', U, 'MT', ''],
+                ['Weight Differential', 'W - U', { f: 'C4-C5' }, 'MT', ''],
+                [],
+                ['PICKUP LEG', '', '', '', ''],
+                ['Future Purchase Date', '', formatDateExcel(pickupPurchaseDate), '', 
+                 validatePromptDate(pickupPurchaseDate).valid ? '✅ Valid Trading Day' : '⚠️ Non-Trading Day'],
+                ['Future Expiry/Pickup Date', '', formatDateExcel(pickupDate), '', 
+                 validatePromptDate(pickupDate).valid ? '✅ Valid Trading Day' : '⚠️ Non-Trading Day'],
+                ['Future Purchase Price', 'P_Fi', pFi, 'USD/MT', ''],
+                ['Warrant Pickup Price', 'P_wi', pWi, 'USD/MT', ''],
+                ['Price Difference (Pickup)', 'P_wi - P_Fi', { f: 'C12-C11' }, 'USD/MT', ''],
+                [],
+                ['DELIVERY LEG', '', '', '', ''],
+                ['Future Purchase Date', '', formatDateExcel(deliveryPurchaseDate), '', 
+                 validatePromptDate(deliveryPurchaseDate).valid ? '✅ Valid Trading Day' : '⚠️ Non-Trading Day'],
+                ['Future Expiry/Delivery Date', '', formatDateExcel(deliveryDate), '', 
+                 validatePromptDate(deliveryDate).valid ? '✅ Valid Trading Day' : '⚠️ Non-Trading Day'],
+                ['Future Price', 'P_Fj', pFj, 'USD/MT', ''],
+                ['Warrant Delivery Price', 'P_wj', pWj, 'USD/MT', ''],
+                ['Price Difference (Delivery)', 'P_wj - P_Fj', { f: 'C19-C18' }, 'USD/MT', ''],
+                ['Warrant Price Change', 'P_wj - P_wi', { f: 'C19-C12' }, 'USD/MT', ''],
+                ['Future Spread', 'P_Fj - P_Fi', { f: 'C18-C11' }, 'USD/MT', ''],
+                [],
+                ['LME TRADING CALENDAR INFO', '', '', '', ''],
+                ['Ring Trading Hours', '', '11:40 - 17:00 London', '', ''],
+                ['LMEselect Hours', '', '01:00 - 19:00 London', '', ''],
+                ['Inter-office Trading', '', '24 hours', '', '']
+            ];
+
+            const wsInputs = XLSX.utils.aoa_to_sheet(inputsData);
+            wsInputs['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 20 }];
+            wsInputs['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }];
+            XLSX.utils.book_append_sheet(wb, wsInputs, 'Inputs');
+
+            // Trader View Sheet
+            const traderData = [
+                ['TRADER VIEW - P&L CALCULATION'],
+                [],
+                ['Component', 'Formula', 'Calculation', 'Result (USD)'],
+                [],
+                ['COMPONENT 1: Weight Differential P&L', '', '', ''],
+                ['  P_wj - P_wi', '', { f: 'Inputs!C19-Inputs!C12' }, ''],
+                ['  W - U', '', { f: 'Inputs!C4-Inputs!C5' }, ''],
+                ['  Weight Diff P&L', '(P_wj - P_wi) × (W - U)', { f: 'C6*C7' }, ''],
+                [],
+                ['COMPONENT 2: Futures Spread P&L', '', '', ''],
+                ['  P_Fj - P_Fi', '', { f: 'Inputs!C18-Inputs!C11' }, ''],
+                ['  U', '', { f: 'Inputs!C5' }, ''],
+                ['  Spread P&L', '(P_Fj - P_Fi) × U', { f: 'C11*C12' }, ''],
+                [],
+                ['LEG BREAKDOWN', '', '', ''],
+                [],
+                ['PICKUP LEG P&L', '', '', ''],
+                ['  Future', 'U × (P_wi - P_Fi)', { f: 'Inputs!C5*Inputs!C13' }, ''],
+                ['  Warrant', '', 0, '(nets to zero)'],
+                ['  Pickup Total', '', '', { f: 'D18+D19' }],
+                [],
+                ['DELIVERY LEG P&L', '', '', ''],
+                ['  Weight Differential', '', '', { f: 'D8' }],
+                ['  Spread (net of pickup)', '', { f: 'D13-D18' }, ''],
+                ['  Delivery Total', '', '', { f: 'D23+D24' }],
+                [],
+                ['TOTAL TRADER P&L', '', '', ''],
+                ['  By Leg: Pickup + Delivery', '', '', { f: 'D20+D25' }],
+                ['  By Component: Weight + Spread', '', '', { f: 'D8+D13' }],
+                ['  TOTAL', '', '', { f: 'D28' }]
+            ];
+
+            const wsTrader = XLSX.utils.aoa_to_sheet(traderData);
+            wsTrader['!cols'] = [{ wch: 35 }, { wch: 30 }, { wch: 20 }, { wch: 20 }];
+            wsTrader['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+            XLSX.utils.book_append_sheet(wb, wsTrader, 'Trader View');
+
+            // M View Sheet
+            const murexData = [
+                ['MUREX VIEW - P&L CALCULATION'],
+                [],
+                ['Leg / Component', 'Formula', 'Calculation', 'Result (USD)'],
+                [],
+                ['PICKUP LEG', '', '', ''],
+                ['  Future', 'U × (P_wi - P_Fi)', { f: 'Inputs!C5*Inputs!C13' }, ''],
+                ['  Warrant', '', 0, '(nets to zero)'],
+                ['  PICKUP TOTAL', '', '', { f: 'D6+D7' }],
+                [],
+                ['DELIVERY LEG', '', '', ''],
+                ['  Future', '-U × (P_wj - P_Fj)', { f: '-Inputs!C5*Inputs!C20' }, ''],
+                ['  Warrant Realized', 'W × (P_wj - P_wi)', { f: 'Inputs!C4*Inputs!C21' }, ''],
+                ['  DELIVERY TOTAL', '', '', { f: 'D11+D12' }],
+                [],
+                ['TOTAL MUREX P&L', '', '', ''],
+                ['  Pickup Leg', '', '', { f: 'D8' }],
+                ['  Delivery Leg', '', '', { f: 'D13' }],
+                ['  TOTAL', '', '', { f: 'D16+D17' }]
+            ];
+
+            const wsM = XLSX.utils.aoa_to_sheet(murexData);
+            wsM['!cols'] = [{ wch: 35 }, { wch: 30 }, { wch: 20 }, { wch: 20 }];
+            wsM['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+            XLSX.utils.book_append_sheet(wb, wsM, 'M View');
+
+            // Reconciliation Sheet
+            const reconData = [
+                ['P&L RECONCILIATION'],
+                [],
+                ['Method', 'Total P&L (USD)', 'Match?'],
+                [],
+                ['TRADER VIEW', { f: "'Trader View'!D30" }, ''],
+                ['MUREX VIEW', { f: "'M View'!D18" }, ''],
+                ['DIFFERENCE', { f: 'ABS(B5-B6)' }, { f: 'IF(ABS(B5-B6)<0.01,"✓ PERFECT MATCH","⚠ MISMATCH")' }],
+                [],
+                ['LEG COMPARISON', '', ''],
+                ['', 'Trader', 'M'],
+                ['Pickup Leg', { f: "'Trader View'!D20" }, { f: "'M View'!D8" }],
+                ['Delivery Leg', { f: "'Trader View'!D25" }, { f: "'M View'!D13" }],
+                ['TOTAL', { f: 'B11' }, { f: 'C11' }]
+            ];
+
+            const wsRecon = XLSX.utils.aoa_to_sheet(reconData);
+            wsRecon['!cols'] = [{ wch: 25 }, { wch: 20 }, { wch: 20 }];
+            wsRecon['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 2 } }];
+            XLSX.utils.book_append_sheet(wb, wsRecon, 'Reconciliation');
+
+            const now = new Date();
+            const timestamp = formatTimestamp(now);
+            const filename = `LME_PL_Reconciliation_${timestamp}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        }
+
+        function formatDateExcel(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+
+        function formatTimestamp(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        window.onload = () => {
+            addDateValidation();
+            addMarketStatusDisplay();
+            calculate();
+        };
+    </script>
+</body>
+</html>

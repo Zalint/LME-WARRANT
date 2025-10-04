@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LME Clear Knowledge Base - FAQ</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 50px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+            font-weight: 300;
+        }
+        
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .breadcrumb {
+            background: #ecf0f1;
+            padding: 15px 50px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .search-container {
+            background: #f8f9fa;
+            padding: 30px 50px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #3498db;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-size: 20px;
+        }
+        
+        .content {
+            padding: 50px;
+        }
+        
+        .section {
+            margin-bottom: 50px;
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .section-header h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .section-header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .qa-grid {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .qa-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .qa-item:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .qa-number {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        
+        .question {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .answer {
+            color: #34495e;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        
+        .citations {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f1f2f6;
+            font-size: 14px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            padding: 30px 50px;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                padding: 30px;
+            }
+            
+            .header {
+                padding: 30px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .search-container {
+                padding: 20px 30px;
+            }
+            
+            .stats {
+                padding: 20px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 LME Clear Knowledge Base</h1>
+            <p>Comprehensive FAQ with 100 Questions and Answers, with a strong focus on LME Warrants, Delivery, Carry Costs, and the contextual conversation between Bank ABC and Macquarie</p>
+        </div>
+        
+        <div class="breadcrumb">
+            <a href="index.html">🏠 Home</a> → LME Clear Knowledge Base
+        </div>
+        
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="Search through 100 Q&A..." id="searchInput">
+                <div class="search-icon">🔍</div>
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- Section VI: Warrants, Delivery, and Carry Costs -->
+            <div class="section">
+                <div class="section-header">
+                    <h2>VI. Warrants, Delivery, and Carry Costs</h2>
+                    <p>42 Questions and Answers covering LME Warrants, delivery procedures, weight adjustments, rent calculations, and carry cost mechanics</p>
+                </div>
+                
+                <div class="qa-grid">
+                    <div class="qa-item">
+                        <div class="qa-number">#1</div>
+                        <div class="question">What is the fundamental nature of an LME Warrant?</div>
+                        <div class="answer">An LME Warrant is a title document (now dematerialized) that certifies possession of a specific lot of LME-approved metal stored in an approved warehouse network. Delivery of the warrant is equivalent to the delivery of the metal attached to it.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#2</div>
+                        <div class="question">What is the electronic system used by the LME for the secure transfer of LME Warrants?</div>
+                        <div class="answer">The LME operates a secure electronic transfer system for LME warrants called <strong>LMEsword</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#3</div>
+                        <div class="question">How does LME Clear interface with the LMEsword system?</div>
+                        <div class="answer">LME Clear maintains one or more accounts, referred to as the "LME Clear LMEsword Clearing Account," for the collection and delivery of LME Warrants.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#4</div>
+                        <div class="question">For which LME product types are LME Warrants the Underlying Asset for physical settlement?</div>
+                        <div class="answer">LME Exchange Traded Forwards are Physical Delivery Contracts for which the Underlying Asset is LME Warrants.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#5</div>
+                        <div class="question">What is the standard lot size for LME Copper and High Grade Primary Aluminium warrants?</div>
+                        <div class="answer">The standard lot size for LME Copper (CA) and High Grade Primary Aluminium (AH) is <strong>25 metric tonnes</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#6</div>
+                        <div class="question">What is the maximum acceptable weight tolerance for delivered LME Warrants (Al/Cu) around the standard lot size?</div>
+                        <div class="answer">The acceptable weight tolerance around 25 tonnes is <strong>± 2%</strong> (approximately 24.5 t to 25.5 t).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#7</div>
+                        <div class="question">What is the risk associated with a warrant weight difference (over or under 25 t) for a trader using a paper hedge?</div>
+                        <div class="answer">Weight differences create a <strong>residual delta</strong> (base risk), as the paper hedge assumes 25.0 t/lot. This modifies the economics of the trade.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#8</div>
+                        <div class="question">Which two primary financial adjustments does LME Clear apply at the time of delivery related to the physical warrant?</div>
+                        <div class="answer">LME Clear applies <strong>"Weight Adjustments"</strong> (for weight difference) and <strong>"Rent and Weight Adjustments"</strong> (for accrued storage/rent).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#9</div>
+                        <div class="question">In what currency are the LME Warrant Delivery Adjustments for Rent and Weight settled?</div>
+                        <div class="answer">These adjustments shall be settled in the <strong>Base Currency (USD)</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#10</div>
+                        <div class="question">How is the Weight Adjustment in USD calculated?</div>
+                        <div class="answer">Weight Adjustment (USD) = (Actual Weight – 25,000 t) × Settlement Price (USD/t).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#11</div>
+                        <div class="question">If a Buyer receives a warrant with surplus weight (over 25,000 t), what is the financial implication regarding the Weight Adjustment?</div>
+                        <div class="answer">The Buyer is <strong>debited (pays)</strong> the positive adjustment amount, as the physical metal delivered is worth more than the standard lot.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#12</div>
+                        <div class="question">If a Buyer receives a warrant with a shortage weight (under 25,000 t), what is the financial implication regarding the Weight Adjustment?</div>
+                        <div class="answer">The Buyer is <strong>credited (receives funds)</strong> the negative adjustment amount, as the physical metal delivered is worth less than the standard lot.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#13</div>
+                        <div class="question">When are the Rent and Weight Adjustments typically settled via LME Clear?</div>
+                        <div class="answer">They are posted to the Member's USD Settlement Account on the delivery day, for value and settlement on the <strong>next Business Day after the Prompt Date</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#14</div>
+                        <div class="question">What is the significance of LME Rent?</div>
+                        <div class="answer">LME Rent refers to the accrued daily rent/storage charges billed by the LME-approved warehouse keepers.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#15</div>
+                        <div class="question">What is the basis (weight measure) used by the warehouse for invoicing LME Rent for cancelled warrants?</div>
+                        <div class="answer">LME Rent is invoiced based on the <strong>standard LME lot weight</strong> for the applicable material.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#16</div>
+                        <div class="question">What must an owner do to physically remove metal from the LME system once they hold the warrant?</div>
+                        <div class="answer">The owner must <strong>cancel</strong> the warrant, notifying the warehouse that the lot will exit the LME system.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#17</div>
+                        <div class="question">What must the owner settle with the warehouse after cancellation and prior to collection?</div>
+                        <div class="answer">The owner must arrange full payment of LME Rent accrued and Free On Truck (FOT) charges (loading-out fees) up until the date of collection.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#18</div>
+                        <div class="question">What notice period does a warehouse (Verbrugge International) typically require to process a request for delivery out after all formalities are completed?</div>
+                        <div class="answer"><strong>48 hours' notice</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#19</div>
+                        <div class="question">What action causes the LME Rent accrued under the LME Queue Based Rent Capping (QBRC) rules to be reset?</div>
+                        <div class="answer">If an allocated loading slot is missed through no fault of the warehouse, rental charges remain due, and any QBRC rental charges will be <strong>reset</strong> as of the date of the missed loading slot.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#20</div>
+                        <div class="question">What is the total cost of carry formula per metric tonne (C_carry) in the context of futures P&L calculation?</div>
+                        <div class="answer">C_carry is the sum of Warrant cost (C_w), LME & clearing fee (C_l), Interest (C_i), and Rent/storage (C_r).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#21</div>
+                        <div class="question">What is "Contango" and what does it reflect?</div>
+                        <div class="answer">Contango is when the forward price is higher than the spot price, reflecting the <strong>costs of carrying</strong> the metal (storage, insurance, financing) and indicating a well-supplied market.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#22</div>
+                        <div class="question">What is the typical trading strategy used to profit from a market in Contango?</div>
+                        <div class="answer">The classical strategy is <strong>Cash and Carry</strong>, where the trader buys metal spot (warrants) and simultaneously sells a farther-dated future to lock in the spread.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#23</div>
+                        <div class="question">What is "Backwardation" and what market condition does it signal?</div>
+                        <div class="answer">Backwardation is when the spot price is higher than the prices for futures, signaling strong immediate demand or limited available stock (a premium for immediate delivery).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#24</div>
+                        <div class="question">What cost adjustment is applied against the "Contango gain" in a P&L calculation example to determine the P&L per lot?</div>
+                        <div class="answer">The <strong>Cost weight</strong> adjustment is applied, which is an operational adjustment related to the difference in weight (ΔW) between the warrant and the economic tonnage.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#25</div>
+                        <div class="question">What are the LME's shortest prompt dates?</div>
+                        <div class="answer">"Cash," corresponding to a delivery two business days after the trade date (T+2), and "Tom" (Tomorrow), corresponding to delivery one business day after the trade date (T+1).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#26</div>
+                        <div class="question">What LME mechanism allows traders to defer physical delivery by one day?</div>
+                        <div class="answer">The <strong>Tom-Next</strong> operation, which involves a double transaction (selling the position arriving tomorrow and buying the next expiry), allowing the position to roll by one day.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#27</div>
+                        <div class="question">What is the latest time that trading ceases for LME Warrants traded in USD, Sterling, and Euro?</div>
+                        <div class="answer">Contracts must be entered into by <strong>12:30 hours</strong> on the Business Day prior to the delivery day ("TOM Prompt Date").</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#28</div>
+                        <div class="question">What is the time limit for transactions in metal/JPY currency pairs?</div>
+                        <div class="answer">Trading and transaction input cease by <strong>20:00 hours</strong>, two (2) Business Days prior to the delivery day ("cash Prompt Date").</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#29</div>
+                        <div class="question">What is the deadline for LME Clear to debit Buyers for the Invoice value for LME Warrant delivery settlements in USD/EUR/GBP?</div>
+                        <div class="answer">By <strong>09:00 hours</strong> on the Prompt Date.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#30</div>
+                        <div class="question">What is the estimated time when LME Clear credits Sellers for the Settlement Payment (Account Sale value) in USD/EUR/GBP?</div>
+                        <div class="answer">Approximately <strong>12:30 hours</strong> on the Prompt Date, following the receipt of LME Warrants from Sellers.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#31</div>
+                        <div class="question">When must Sellers provide LME Warrants to fulfill their Delivery Obligation?</div>
+                        <div class="answer">Sellers shall nominate all necessary warrants in an "Authorised" Warrant Transfer Instruction by <strong>11:00 hours</strong> on the Prompt Date.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#32</div>
+                        <div class="question">What is the LME Premium Warrant Payment Obligation?</div>
+                        <div class="answer">It is the obligation of a Buyer under an LME Aluminium Premium Contract to deliver LME Warrants, together with cash, in part satisfaction of the Payment Obligation.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#33</div>
+                        <div class="question">What must be true about the rent status of LME Warrants for them to be accepted as Eligible Collateral?</div>
+                        <div class="answer">There must be <strong>no outstanding rent payments</strong> and no Rent Date must occur within <strong>five (5) Business Days</strong> of the eligibility assessment.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#34</div>
+                        <div class="question">What reports does LMEsword make available regarding delivery adjustments?</div>
+                        <div class="answer">The Warrant Collection Adjustment Invoice (for seller) and the Warrant Allocation Adjustment Invoice (for buyer).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#35</div>
+                        <div class="question">How does LME Clear determine the net Delivery Position for all open physical contracts at expiry on a given Account?</div>
+                        <div class="answer">It calculates a <strong>Final Delivery Position</strong> by netting the Purchase Positions and Sale Positions across all currencies for that Underlying Asset on the Account.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#36</div>
+                        <div class="question">How many Warrant Movements may a Member have with LME Clear in a single Underlying Asset (excluding LME Premium Warrants) on a single Business Day?</div>
+                        <div class="answer">A Member may have a maximum of <strong>three (3) Warrant Movements</strong> with LME Clear: one net movement for House Accounts, one total buying movement for Client Accounts, and one total selling movement for Client Accounts.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#37</div>
+                        <div class="question">When LME Clear applies a Buy-In due to a Member's delivery failure, what costs must the Member reimburse LME Clear for?</div>
+                        <div class="answer">The Member must reimburse LME Clear for all costs incurred in purchasing or borrowing the Underlying Asset, including the amount paid and execution costs.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#38</div>
+                        <div class="question">If an auction is declared a "Failed Auction," what steps may LME Clear take?</div>
+                        <div class="answer">LME Clear may undertake one or more further auctions and may adjust the parameters of the new auction.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#39</div>
+                        <div class="question">What is the conversion fee for re-warranting (issuing a new warrant) if the load out slots were already scheduled?</div>
+                        <div class="answer">The charge is <strong>USD 8 per ton</strong> for metals like Aluminium Alloy and Copper.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#40</div>
+                        <div class="question">What is the definition of a "Rent Date" for an LME Warrant?</div>
+                        <div class="answer">The day on which rent falls due, which shall be <strong>31 March</strong> in each calendar year (unless otherwise specified).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#41</div>
+                        <div class="question">How is the Settlement Payment value calculated for Invoice and Account Sales?</div>
+                        <div class="answer">Amount = Contract weight × Settlement Price × lots.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#42</div>
+                        <div class="question">Which section of the Clearing Procedures defines the LME Warrant Delivery Procedures?</div>
+                        <div class="answer">Clearing Procedure <strong>Part F, Section 2</strong>.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section VIII: Contextualisation (Conversation Bank ABC/Macquarie) -->
+            <div class="section">
+                <div class="section-header" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">
+                    <h2>VIII. Contextualisation (Conversation Bank ABC/Macquarie)</h2>
+                    <p>42 Questions and Answers covering the specific relationship and operational procedures between Bank ABC and Macquarie in LME warrant transactions</p>
+                </div>
+                
+                <div class="qa-grid">
+                    <div class="qa-item">
+                        <div class="qa-number">#43</div>
+                        <div class="question">What is Macquarie's primary role in relation to Bank ABC's LME activity?</div>
+                        <div class="answer">Macquarie acts as the <strong>clearing member or broker</strong> for Bank ABC, as Bank ABC is not a direct member of the LME.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#44</div>
+                        <div class="question">How does Bank ABC, as a client, generally acquire or dispose of warrant positions?</div>
+                        <div class="answer">This activity happens through <strong>futures or forwards look-alike</strong> transactions executed on execution platforms and cleared via Macquarie's membership.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#45</div>
+                        <div class="question">Can a client like Bank ABC directly submit a sell order for warrants through the broker's system?</div>
+                        <div class="answer">No, warrants are primarily used to satisfy a <strong>delivery obligation</strong> against the expiry of a forward or future position.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#46</div>
+                        <div class="question">When a long position expires resulting in a physical delivery, does the trader know the specific warrants they will receive upfront?</div>
+                        <div class="answer">No, the trader receives an <strong>allocation of warrants</strong> directly into LMEsword, and they cannot control which warrants are received.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#47</div>
+                        <div class="question">When a short position results in a delivery obligation, can the trader specify which warrants they return to the exchange?</div>
+                        <div class="answer">Yes, when delivering them back, the trader <strong>can specify</strong> which warrants they are sending back (referred to as the "sifting piece").</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#48</div>
+                        <div class="question">How does the client typically communicate to Macquarie which specific warrants to deliver back to the exchange on a short position?</div>
+                        <div class="answer">The client confirms to Macquarie which warrants are being sent back, often using the <strong>same CSV file format</strong> provided by Macquarie, identifying the warrants by ID.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#49</div>
+                        <div class="question">What is the expected deadline for the client to confirm which warrants they will deliver for a position prompting the next day?</div>
+                        <div class="answer">Confirmation is generally expected by the <strong>close of business</strong> on the current day.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#50</div>
+                        <div class="question">What specific data must the inventory file (CSV) contain to enable the delivery instruction?</div>
+                        <div class="answer">It must contain the <strong>individual warrant ID</strong> and other salient information for each warrant.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#51</div>
+                        <div class="question">Why does the trader initially deem having the full inventory of warrant IDs "useless" for the system solution?</div>
+                        <div class="answer">Because the trader hedges that position on the market using the <strong>common base metal price</strong> (forward price), and details like custodian or location are not required for general hedging.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#52</div>
+                        <div class="question">Does Macquarie provide market data reflecting physical spreads based on warrant location or characteristics for mark-to-market?</div>
+                        <div class="answer">No, Macquarie does not provide valuation or spreading information based on warrant characteristics or location.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#53</div>
+                        <div class="question">What is the consequence if the rent fees are not accounted for "along the way" by the client?</div>
+                        <div class="answer">The trader's Profit & Loss (P&L) will <strong>not accurately capture these fees</strong> until settlement.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#54</div>
+                        <div class="question">Why can Bank ABC not compute the rent fees internally using their system (M)?</div>
+                        <div class="answer">Because Bank ABC is not a direct LME member, they lack access to <strong>LMEsword</strong>, where the complex rent management and fee computation (based on warrant ID, location, etc.) are handled.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#55</div>
+                        <div class="question">Where do the Rent and Weight Adjustment fees originate?</div>
+                        <div class="answer">This cost is a <strong>pass-through from the exchange</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#56</div>
+                        <div class="question">When are Macquarie's own brokerage commission fees settled relative to the warrant activity?</div>
+                        <div class="answer">The commission piece is attached to the <strong>warrant activity</strong> and processed in line with the <strong>delivery schedule</strong>, not through a monthly invoicing process.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#57</div>
+                        <div class="question">What is Macquarie's commission rate for warrant activity?</div>
+                        <div class="answer">The agreed rate is <strong>140 per lot</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#58</div>
+                        <div class="question">What daily report does Macquarie typically provide to Bank ABC regarding their warrant holdings?</div>
+                        <div class="answer">A list of the <strong>inventory</strong> is provided on a <strong>daily basis</strong> via CSV files.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#59</div>
+                        <div class="question">For risk management, what type of view does the trader need for positions up until three months?</div>
+                        <div class="answer">A <strong>cumulative view</strong> (stock mode) up until three months, using the three months as a base.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#60</div>
+                        <div class="question">For risk management, what type of view does the trader need for positions after three months?</div>
+                        <div class="answer">A <strong>reverse cumulative view</strong> (reverse stock mode).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#61</div>
+                        <div class="question">What type of risk management view is required for fixed-price contracts like swaps?</div>
+                        <div class="answer">A <strong>Delta view</strong> (or fixing view) bucketed by the <strong>underlying future pillar</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#62</div>
+                        <div class="question">What data format constraint highlights the need for automation in the client's system?</div>
+                        <div class="answer">The list of warrants can be 5,000 lines, requiring an automated function ("plug") rather than line-by-line manual entry.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#63</div>
+                        <div class="question">How is physical delivery generally managed in the client's system if the delivery event is used instead of the future/option exercise event?</div>
+                        <div class="answer">The warrants are inserted manually (via file received from the clearer) to close the short against the delivery.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#64</div>
+                        <div class="question">What specific LME events are commonly packaged into system modules (like M) to handle warrants?</div>
+                        <div class="answer">Specific LME events such as <strong>take off</strong>, <strong>break on</strong>, and <strong>give up</strong> are packaged to manage the warrants.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#65</div>
+                        <div class="question">If LME Clear requires a Member to allocate Rent and Weight Debits/Credits to a Client Account, what is the deadline for notification?</div>
+                        <div class="answer">The Member must notify LME Clear <strong>prior to the Close of Business</strong> on the day the relevant LME Warrant was delivered.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#66</div>
+                        <div class="question">What level of position detail does LME Clear track for Gross Omnibus Segregated Client Accounts regarding warrant movements?</div>
+                        <div class="answer">LME Clear determines warrant movements on an <strong>Account-level basis</strong>; the Member is solely responsible for managing the allocation of warrants to individual Allocation IDs.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#67</div>
+                        <div class="question">What is the client's general obligation regarding compliance with the LME Rules and third parties?</div>
+                        <div class="answer">The Member must ensure that the Client is aware and understands that LME Clear shall not have any obligations or liability to any person who is not a Member.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#68</div>
+                        <div class="question">Can LME Clear disclose Auction Portfolio information to a client assisting a Member's bid?</div>
+                        <div class="answer">Yes, if the Member obtained LME Clear's consent and the specific Client signed a confidentiality agreement <strong>prior</strong> to the commencement of the Default Period.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#69</div>
+                        <div class="question">Which electronic terminal is noted for its role in the LME warrant delivery process by the broker?</div>
+                        <div class="answer"><strong>LMEsword</strong> is identified as the exchange's delivery terminal where warrant information is held.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#70</div>
+                        <div class="question">What type of transfer instruction is used in LMEsword to move Eligible LME Warrants to or from the LME Clear Pledged Account?</div>
+                        <div class="answer">Transfers are executed via an <strong>Ex-cleared Transfer Instruction</strong>.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#71</div>
+                        <div class="question">If the broker needs to clarify a bid submitted in an auction, whom may LME Clear contact?</div>
+                        <div class="answer">LME Clear may contact an <strong>Authorised Representative</strong> of the Member or an alternative authorised individual whose contact details the Member specified in advance.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#72</div>
+                        <div class="question">Who is responsible for ensuring that all transferring Clients consent to an Account Transfer?</div>
+                        <div class="answer">It is the responsibility of the <strong>Requesting Member(s)</strong> to ensure full consent of all transferring Clients/Indirect Clients.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#73</div>
+                        <div class="question">What is the nature of the LME Group's involvement in the physical storage of metal?</div>
+                        <div class="answer">The LME relies on a worldwide network of approved depots (warehouses) that store the metal, but the LME <strong>owns none</strong> of the warehouses itself.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#74</div>
+                        <div class="question">What LME feature gives the Seller the right to choose which specific warrant they deliver against a contract?</div>
+                        <div class="answer">Delivery is made at the Seller's option, meaning the Seller can select the warehouse and brand, provided they are LME approved (delivery via warrant).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#75</div>
+                        <div class="question">In a delivery scenario, why is metal stock published by the LME followed closely by traders?</div>
+                        <div class="answer">The LME publishes stock "on warrant" versus "cancelled warrants" daily to inform the market of physical availability and help traders anticipate delivery tensions.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#76</div>
+                        <div class="question">If a load out slot is missed due to the Member's fault, what outstanding charges remain due?</div>
+                        <div class="answer">All outstanding rental charges will be due and payable up until the rescheduled loading slot date.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#77</div>
+                        <div class="question">What are LME Premium Warrants defined as?</div>
+                        <div class="answer">LME Warrants that are allocable to a specific geographical region.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#78</div>
+                        <div class="question">What is the maximum number of days trading in the expiring LME Aluminium Premium Contract is permitted prior to the Prompt Date?</div>
+                        <div class="answer">Trading ceases two (2) Business Days before the Prompt Date (the third Wednesday of the month).</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#79</div>
+                        <div class="question">How is the transfer of LME Warrant Collateral managed in the Client Direct Posting Structure?</div>
+                        <div class="answer">The Posting Client instructs its Member to make an <strong>Ex-cleared Transfer Instruction</strong> in LMEsword to the LME Clear Pledged Account.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#80</div>
+                        <div class="question">What is the main characteristic of the "Unauthorised" Warrant Transfer Instruction received by a Seller on the day prior to Prompt Date?</div>
+                        <div class="answer">The Seller receives an instruction which they may <strong>discard</strong> and create a new instruction, confirming the ability of the Seller to choose the warrant.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#81</div>
+                        <div class="question">What happens if LME Clear cannot deliver a cash payment in Renminbi (CNH) due to liquidity or currency controls?</div>
+                        <div class="answer">LME Clear may <strong>postpone</strong> the return of Cash Collateral denominated in renminbi.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#82</div>
+                        <div class="question">If a Mandatory Bidder fails to participate in an auction, what percentage of their Default Fund Contribution (DFC) is applied toward the resulting Excess Loss?</div>
+                        <div class="answer">LME Clear applies 100% of the DFC of any Mandatory Bidder who failed to submit a bid.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#83</div>
+                        <div class="question">Can a non-defaulting Member request an exclusion from mandatory bidding?</div>
+                        <div class="answer">Yes, LME Clear may exclude a Mandatory Bidder if LME Clear determines that such exclusion is desirable.</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#84</div>
+                        <div class="question">Where can LME Clear's full list of available reports be found?</div>
+                        <div class="answer">In <strong>Annex 4</strong> (List of Available Reports), the content of which is set out on the LME Clear Website.</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Section III, IV, V, VII: Low Priority Sections -->
+            <div class="section">
+                <div class="section-header" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">
+                    <h2>III, IV, V, VII. Other LME Clear Procedures</h2>
+                    <p>16 Questions and Answers covering Accounts, Client Business, Portability, Collateral, Margin, Treasury, Default Management, Risk Management, Acceptance, and Compression</p>
+                </div>
+                
+                <div class="qa-grid">
+                    <div class="qa-item">
+                        <div class="qa-number">#85</div>
+                        <div class="question">What is the function of a House Account?</div>
+                        <div class="answer">A House Account may only be used to record the rights and obligations arising in respect of Contracts resulting from Transactions effected on the <strong>Member's own behalf</strong>.</div>
+                        <div class="citations">Section III. Accounts, Client Business, and Portability</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#86</div>
+                        <div class="question">What mechanism in a Direct Gross Omnibus Segregated Client Account allows LME Clear to calculate separate Margin Requirements?</div>
+                        <div class="answer">Positions are segregated and identifiable by <strong>Allocation IDs</strong>.</div>
+                        <div class="citations">Section III. Accounts, Client Business, and Portability</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#87</div>
+                        <div class="question">What consequence does the inclusion of a Non-Identified Client have on a Client Account's portability?</div>
+                        <div class="answer">The inclusion of a Non-Identified Client will <strong>impair the ability of all Clients</strong> allocated to that Account to apply the Porting Process upon the Member's default.</div>
+                        <div class="citations">Section III. Accounts, Client Business, and Portability</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#88</div>
+                        <div class="question">What restriction applies to the destination of assets and positions transferred out of a Client Account during the Porting Process?</div>
+                        <div class="answer">Transfer is only permitted to a <strong>single Member Transferee</strong> that consents to receive such assets and positions.</div>
+                        <div class="citations">Section III. Accounts, Client Business, and Portability</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#89</div>
+                        <div class="question">Must collateral provided to cover delivery risk be in cash or non-cash form?</div>
+                        <div class="answer">Any amounts required to cover <strong>delivery risk</strong> will be payable <strong>in cash</strong>.</div>
+                        <div class="citations">Section IV. Collateral, Margin, and Treasury</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#90</div>
+                        <div class="question">What legal status does Cash Collateral provided by a Member hold with LME Clear?</div>
+                        <div class="answer">Cash Collateral is freely usable by LME Clear; the Member retains <strong>no proprietary interest</strong> in the cash, which constitutes an unsecured debt owed by LME Clear to the Member.</div>
+                        <div class="citations">Section IV. Collateral, Margin, and Treasury</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#91</div>
+                        <div class="question">How is the "Collateral Value" of Eligible Collateral determined?</div>
+                        <div class="answer">The Collateral Value is the Market Value of that Eligible Collateral (in the Base Currency) minus any applicable <strong>Haircut</strong>.</div>
+                        <div class="citations">Section IV. Collateral, Margin, and Treasury</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#92</div>
+                        <div class="question">What is the general priority of collateral usage in the Cover Distribution Process?</div>
+                        <div class="answer">Available <strong>Non-cash Collateral</strong> shall be used before Available Cash Collateral, regardless of Haircut or currency, except up to the amount of the Minimum Cash Requirement.</div>
+                        <div class="citations">Section IV. Collateral, Margin, and Treasury</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#93</div>
+                        <div class="question">What is the primary objective LME Clear must protect when taking default action?</div>
+                        <div class="answer">LME Clear's primary objective is "effective risk management," which means protecting (i) its capital and the Default Fund, and (ii) the integrity of the markets which it clears.</div>
+                        <div class="citations">Section V. Default and Risk Management</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#94</div>
+                        <div class="question">What is the first resource LME Clear applies to discharge a "Default Loss"?</div>
+                        <div class="answer">The Collateral, or any Asset Cover, provided by the <strong>Defaulting Member</strong>.</div>
+                        <div class="citations">Section V. Default and Risk Management</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#95</div>
+                        <div class="question">What restriction applies to the composition of an Auction Portfolio for loss allocation?</div>
+                        <div class="answer">An individual Portfolio created for auction <strong>shall not contain</strong> Open Contracts relating to both the LME Base Service and the LMEprecious Service.</div>
+                        <div class="citations">Section V. Default and Risk Management</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#96</div>
+                        <div class="question">What are LME Clear's options if it is impossible or impracticable to Buy-In an Underlying Asset after a Member's delivery failure?</div>
+                        <div class="answer">LME Clear may make a <strong>Cash Settlement</strong> (Invoice Back) to the non-defaulting Member in substitution for the physical delivery.</div>
+                        <div class="citations">Section V. Default and Risk Management</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#97</div>
+                        <div class="question">What are the two types of compression structure a Member can elect for an Account?</div>
+                        <div class="answer"><strong>Manual or File Based Compression</strong> or <strong>Automatic Compression</strong>.</div>
+                        <div class="citations">Section VII. Acceptance and Compression</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#98</div>
+                        <div class="question">For a contract to be eligible for Compression, what key requirement must be met if the transaction resulted in Underlying Client Trades?</div>
+                        <div class="answer">The <strong>same Client or Indirect Client</strong> must be a party to each such Underlying Client Trade.</div>
+                        <div class="citations">Section VII. Acceptance and Compression</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#99</div>
+                        <div class="question">Name the four components that constitute the "Core Economic Terms" of a Contract for compression eligibility.</div>
+                        <div class="answer">The Prompt Date, the Eligible Product, the type of Underlying Asset (not quantity), and the type of Settlement Currency (not quantity).</div>
+                        <div class="citations">Section VII. Acceptance and Compression</div>
+                    </div>
+                    
+                    <div class="qa-item">
+                        <div class="qa-number">#100</div>
+                        <div class="question">What restriction does compression impose on the calculation of the contingent margin (DCVM)?</div>
+                        <div class="answer">The compression must ensure that the DCVM attributable to the resulting Post-Compression Contracts remains <strong>the same</strong> as the sum of the DCVM for the original Contracts.</div>
+                        <div class="citations">Section VII. Acceptance and Compression</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="stats">
+            <h3>Knowledge Base Statistics</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">100</div>
+                    <div class="stat-label">Total Q&A</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">Warrants & Delivery</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">42</div>
+                    <div class="stat-label">Bank ABC/Macquarie Context</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">16</div>
+                    <div class="stat-label">Other Procedures</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        const qaItems = document.querySelectorAll('.qa-item');
+        const sections = document.querySelectorAll('.section');
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            let hasResults = false;
+            
+            qaItems.forEach(item => {
+                const question = item.querySelector('.question').textContent.toLowerCase();
+                const answer = item.querySelector('.answer').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                    hasResults = true;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Show/hide sections based on visible items
+            sections.forEach(section => {
+                const visibleItems = section.querySelectorAll('.qa-item[style*="block"], .qa-item:not([style*="none"])');
+                if (searchTerm === '' || visibleItems.length > 0) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+            
+            // Show no results message
+            const existingNoResults = document.querySelector('.no-results');
+            if (existingNoResults) {
+                existingNoResults.remove();
+            }
+            
+            if (!hasResults && searchTerm !== '') {
+                const noResultsDiv = document.createElement('div');
+                noResultsDiv.className = 'no-results';
+                noResultsDiv.innerHTML = '📭 No results found for "' + searchTerm + '"<br>Try searching for different keywords like "warrant", "delivery", "Bank ABC", "Macquarie", etc.';
+                document.querySelector('.content').appendChild(noResultsDiv);
+            }
+        });
+        
+        // Highlight search terms
+        function highlightSearchTerm(text, term) {
+            if (!term) return text;
+            const regex = new RegExp(`(${term})`, 'gi');
+            return text.replace(regex, '<mark style="background: #fff3cd; padding: 2px 4px; border-radius: 3px;">$1</mark>');
+        }
+    </script>
+</body>
+</html>

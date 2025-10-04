@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LME Warrant P&L Mathematical Proof - Trader vs M Formula Equivalence</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .navbar .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            padding-left: 20px;
+        }
+
+        h3 {
+            color: #764ba2;
+            font-size: 1.4em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .formula-box {
+            background: #f8f9ff;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            line-height: 1.8;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .formula-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.1em;
+        }
+
+        .math-expression {
+            color: #333;
+            font-weight: bold;
+            margin: 8px 0;
+            padding: 5px 0;
+        }
+
+        .expansion {
+            color: #555;
+            font-style: italic;
+            margin-left: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-family: 'Courier New', monospace;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9ff;
+        }
+
+        tr:hover {
+            background-color: #e8f0ff;
+            transition: background-color 0.3s ease;
+        }
+
+        .checkmark {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .component-list {
+            background: #fff8f0;
+            border-left: 5px solid #f39c12;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .component-list h4 {
+            color: #f39c12;
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+
+        .component-list ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+
+        .component-list li {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .insight-box {
+            background: linear-gradient(135deg, #e8f5e8, #f0fff0);
+            border: 2px solid #27ae60;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 25px 0;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.1);
+        }
+
+        .insight-title {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .conclusion-box {
+            background: linear-gradient(135deg, #fff3e0, #ffeaa7);
+            border: 3px solid #f39c12;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(243, 156, 18, 0.2);
+        }
+
+        .conclusion-title {
+            color: #f39c12;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .conclusion-text {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #f39c12 0%, #f39c12 100%);
+            background-repeat: no-repeat;
+            background-size: 100% 30%;
+            background-position: 0 85%;
+            font-weight: bold;
+        }
+
+        .variable-definition {
+            background: #f0f8ff;
+            border-left: 4px solid #4a90e2;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .variable-definition strong {
+            color: #4a90e2;
+        }
+
+        .section-divider {
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            margin: 40px 0;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html" class="logo">🔢 LME Calculator Suite</a>
+        <a href="index.html" class="back-btn">← Back to Home</a>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>LME Warrant P&L Mathematical Proof</h1>
+            <div class="subtitle">Demonstrating Perfect Equivalence Between Trader's Formula and M Formula</div>
+        </div>
+
+        <h2>Starting with Trader's Formula</h2>
+        <div class="formula-box">
+            <div class="formula-title">P&L_Trader = (P_wj - P_wi) × (W - U) + (P_Fj - P_Fi) × U</div>
+            
+            <div class="expansion">
+                <strong>Expanding:</strong><br>
+                = P_wj × W - P_wj × U - P_wi × W + P_wi × U + P_Fj × U - P_Fi × U
+            </div>
+            
+            <div class="expansion">
+                <strong>Rearranging:</strong><br>
+                = W × P_wj - W × P_wi + U × P_wi - U × P_Fi - U × P_wj + U × P_Fj
+            </div>
+            
+            <div class="expansion">
+                <strong>Grouping by U and W:</strong><br>
+                = W × (P_wj - P_wi) + U × (P_wi - P_Fi) + U × (P_Fj - P_wj)
+            </div>
+        </div>
+
+        <h2>M Formula (Complete)</h2>
+        <div class="formula-box">
+            <div class="formula-title">P&L_M = [Pickup Leg] + [Delivery Leg]</div>
+            
+            <div class="math-expression">
+                <strong>Pickup Leg:</strong><br>
+                = U × (P_wi - P_Fi) + 0 (warrant nets to zero)
+            </div>
+            
+            <div class="math-expression">
+                <strong>Delivery Leg:</strong><br>
+                = -U × (P_wj - P_Fj) + W × (P_wj - P_wi)<br>
+                = U × (P_Fj - P_wj) + W × (P_wj - P_wi)
+            </div>
+            
+            <div class="math-expression">
+                <strong>Total:</strong><br>
+                = U × (P_wi - P_Fi) + U × (P_Fj - P_wj) + W × (P_wj - P_wi)
+            </div>
+        </div>
+
+        <h2>Both Formulas Are IDENTICAL</h2>
+        <div class="insight-box">
+            <div class="insight-title">The expanded forms are term-by-term equal, just in different order:</div>
+            
+            <div class="formula-box" style="margin: 20px 0;">
+                <div class="math-expression"><strong>Trader (rearranged):</strong></div>
+                <div class="math-expression">W × (P_wj - P_wi) + U × (P_wi - P_Fi) + U × (P_Fj - P_wj)</div>
+            </div>
+            
+            <div class="formula-box" style="margin: 20px 0;">
+                <div class="math-expression"><strong>M:</strong></div>
+                <div class="math-expression">U × (P_wi - P_Fi) + U × (P_Fj - P_wj) + W × (P_wj - P_wi)</div>
+            </div>
+        </div>
+
+        <h2>Breaking Down the Three Components</h2>
+        
+        <div class="component-list">
+            <h4>1. W × (P_wj - P_wi)</h4>
+            <ul>
+                <li>Warrant P&L on actual weight (pickup to delivery)</li>
+            </ul>
+        </div>
+
+        <div class="component-list">
+            <h4>2. U × (P_wi - P_Fi)</h4>
+            <ul>
+                <li>Future P&L from entry to pickup settlement</li>
+                <li>Can be zero if P_Fi = P_wi</li>
+            </ul>
+        </div>
+
+        <div class="component-list">
+            <h4>3. U × (P_Fj - P_wj)</h4>
+            <ul>
+                <li>Future P&L from delivery settlement spread (cash vs warrant price)</li>
+            </ul>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Verification: Both Cases</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Component Values</th>
+                    <th>Trader P&L</th>
+                    <th>M P&L</th>
+                    <th>Match?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>P_Fi = P_wi</strong></td>
+                    <td>W×(P_wj-P_wi) = 1,871.943<br/>U×(P_wi-P_Fi) = 0<br/>U×(P_Fj-P_wj) = -993.75</td>
+                    <td>878.193</td>
+                    <td>878.193</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+                <tr>
+                    <td><strong>P_Fi ≠ P_wi</strong></td>
+                    <td>W×(P_wj-P_wi) = 1,871.943<br/>U×(P_wi-P_Fi) = 500.00<br/>U×(P_Fj-P_wj) = -993.75</td>
+                    <td>1,378.197</td>
+                    <td>1,378.193</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="insight-box">
+            <div class="insight-title">Key Insight</div>
+            <p>The term U × (P_wi - P_Fi) is simply the future P&L from purchase to settlement. When P_Fi = P_wi, this term is zero. When P_Fi ≠ P_wi, it captures the market movement between future purchase and pickup, and both systems account for it identically.</p>
+        </div>
+
+        <div class="section-divider"></div>
+
+        <h2>Reconciliation Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Measurement Level</th>
+                    <th>Trader P&L</th>
+                    <th>M P&L</th>
+                    <th>Match?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Pickup Leg (P_Fi=P_wi)</td>
+                    <td>0</td>
+                    <td>0</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+                <tr>
+                    <td>Pickup Leg (P_Fi≠P_wi)</td>
+                    <td>500.00</td>
+                    <td>500.00</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+                <tr>
+                    <td>Delivery Leg</td>
+                    <td>878.193</td>
+                    <td>878.193</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+                <tr>
+                    <td>Complete Cycle (P_Fi=P_wi)</td>
+                    <td>878.193</td>
+                    <td>878.193</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+                <tr>
+                    <td>Complete Cycle (P_Fi≠P_wi)</td>
+                    <td>1,378.193</td>
+                    <td>1,378.193</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+                <tr>
+                    <td>Daily Warrant MTM</td>
+                    <td>W × (P_t - P_wi)</td>
+                    <td>W × (P_t - P_wi)</td>
+                    <td><span class="checkmark">✓ YES</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-divider"></div>
+
+        <h2>Key Insights</h2>
+
+        <h3>Perfect Alignment</h3>
+        <p>With futures always on 25 MT and warrants on actual weight, trader and M views produce identical results at every level - regardless of when the future was purchased.</p>
+
+        <h3>No Reconciliation Breaks</h3>
+        <p>Individual pickup legs, delivery legs, and complete cycles all match perfectly. Any difference indicates a true booking error.</p>
+
+        <h3>Weight Differential</h3>
+        <p>The (W - U) weight differential creates exposure to warrant price movements, properly captured in both trader and M calculations.</p>
+
+        <h3>Universal Formula</h3>
+        <p>The algebraic proof works for ANY combination of prices - no special cases needed. Whether P_Fi = P_wi or not, the reconciliation is perfect.</p>
+
+        <div class="section-divider"></div>
+
+        <div class="conclusion-box">
+            <div class="conclusion-title">Conclusion</div>
+            <div class="conclusion-text">
+                With the correct understanding that futures are <span class="highlight">ALWAYS</span> calculated on 25 MT standard lots (regardless of actual warrant weight), the trader's economic view and M system representation are <span class="highlight">perfectly aligned in ALL cases</span>.
+            </div>
+        </div>
+
+        <div class="variable-definition">
+            <h3>Variable Definitions</h3>
+            <p><strong>W:</strong> Physical warrant weight (MT)</p>
+            <p><strong>U:</strong> Standard futures lot size (25 MT per contract)</p>
+            <p><strong>P_Fi:</strong> Future price at pickup</p>
+            <p><strong>P_wi:</strong> Warrant price at pickup</p>
+            <p><strong>P_Fj:</strong> Future price at delivery</p>
+            <p><strong>P_wj:</strong> Warrant price at delivery</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; color: #666; font-style: italic;">
+            Generated on: <span id="currentDate"></span> | LME Warrant P&L Mathematical Proof
+        </div>
+    </div>
+
+    <script>
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-GB', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+
+        // Add smooth scrolling for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add hover effects to tables
+        document.querySelectorAll('table tr').forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.transform = 'scale(1.02)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

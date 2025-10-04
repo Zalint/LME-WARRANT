@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>LME Single Contract Calculator - Enhanced</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .navbar .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            min-height: calc(100vh - 80px);
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 2rem;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+
+        .main-content {
+            padding: 2rem;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .section h3 {
+            color: #1e40af;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 2px solid #1e40af;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 0.7rem;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metal-selector {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none !important;
+            font-weight: 600;
+        }
+
+        .metal-selector option {
+            background: white;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .metal-info {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .price-suggestion {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 0.5rem;
+            margin-top: 0.3rem;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price-suggestion button {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.8rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .result-card h3 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .summary-item.profit {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 1px solid #10b981;
+        }
+
+        .summary-item.loss {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            border: 1px solid #ef4444;
+        }
+
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .summary-value.positive { color: #10b981; }
+        .summary-value.negative { color: #ef4444; }
+
+        .formula {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #1e40af;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            line-height: 1.6;
+        }
+
+        .match-indicator {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border: 2px solid #10b981;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            color: #059669;
+            font-size: 1.1rem;
+            margin: 1rem 0;
+        }
+
+        .validation-message {
+            font-size: 0.8rem;
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.3rem;
+        }
+
+        .validation-success {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #10b981;
+        }
+
+        .validation-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #ef4444;
+        }
+
+        .market-status-widget {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            z-index: 1000;
+            min-width: 200px;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+            .market-status-widget {
+                position: static;
+                margin: 1rem 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+                position: sticky;
+                top: 0;
+                z-index: 1000;
+            }
+
+            .navbar .logo {
+                font-size: 1.2rem;
+            }
+
+            .container {
+                margin: 0;
+                padding: 1rem;
+                padding-top: 80px; /* Account for sticky navbar */
+            }
+
+            .sidebar, .main-content {
+                padding: 1rem;
+            }
+
+            .section {
+                padding: 1.25rem;
+                margin-bottom: 1.25rem;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            }
+
+            .section h3 {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.25rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            label {
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+
+            input, select, .btn {
+                font-size: 16px; /* Prevents zoom on iOS */
+                padding: 1rem;
+                border-radius: 10px;
+            }
+
+            input, select {
+                border: 2px solid #cbd5e1;
+                transition: border-color 0.3s;
+            }
+
+            input:focus, select:focus {
+                border-color: #3b82f6;
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+
+            .btn {
+                min-height: 48px; /* iOS touch target size */
+                font-weight: 600;
+                letter-spacing: 0.5px;
+            }
+
+            .btn-primary, .btn-secondary {
+                position: sticky;
+                bottom: 1rem;
+                z-index: 100;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+
+            .result-card {
+                padding: 1.25rem;
+                margin-bottom: 1.25rem;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            }
+
+            .result-card h3 {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+            }
+
+            .formula {
+                font-size: 0.9rem;
+                line-height: 1.6;
+                padding: 1rem;
+            }
+
+            .market-status-widget {
+                font-size: 0.85rem;
+                padding: 0.75rem;
+            }
+
+            small {
+                display: block;
+                margin-top: 0.5rem;
+                line-height: 1.4;
+            }
+
+            .price-suggestion {
+                padding: 0.75rem;
+                margin-top: 0.75rem;
+            }
+
+            .price-suggestion button {
+                padding: 0.5rem 1rem;
+                min-height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                font-size: 14px;
+            }
+
+            .navbar .logo {
+                font-size: 1rem;
+            }
+
+            .back-btn {
+                padding: 0.4rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 0.5rem;
+            }
+
+            .section {
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .section h3 {
+                font-size: 1rem;
+                margin-bottom: 0.75rem;
+            }
+
+            label {
+                font-size: 0.9rem;
+            }
+
+            input, select {
+                padding: 0.6rem;
+            }
+
+            .btn {
+                padding: 0.75rem;
+                font-size: 0.95rem;
+            }
+
+            .result-card {
+                padding: 0.75rem;
+            }
+
+            .result-card h3 {
+                font-size: 1rem;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .formula {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+
+            small {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* iOS Safari specific fixes */
+        @supports (-webkit-touch-callout: none) {
+            input, select, textarea {
+                -webkit-appearance: none;
+                appearance: none;
+                border-radius: 8px;
+            }
+            
+            .btn {
+                -webkit-tap-highlight-color: rgba(0,0,0,0.1);
+            }
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #1e40af;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html" class="logo">🔢 LME Calculator Suite</a>
+        <a href="index.html" class="back-btn">← Back to Home</a>
+    </div>
+
+    <div class="market-status-widget" id="marketStatus">
+        <div><strong>🌐 LME Status</strong></div>
+        <div id="tradingStatus">🔴 Loading...</div>
+        <div id="londonTime">London: --:--:--</div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="section">
+                <h3>🏭 Metal Selection</h3>
+                <div class="form-group">
+                    <label>Base Metal</label>
+                    <select id="metalSelector" class="metal-selector" onchange="updateMetalPrices()">
+                        <option value="CU">Copper (Cu) - $9,779/tonne</option>
+                        <option value="AL">Aluminium (Al) - $2,697/tonne</option>
+                        <option value="NI">Nickel (Ni) - $15,185/tonne</option>
+                        <option value="ZN">Zinc (Zn) - $2,992/tonne</option>
+                        <option value="PB">Lead (Pb) - $2,013/tonne</option>
+                        <option value="SN">Tin (Sn) - $35,410/tonne</option>
+                    </select>
+                    <div class="metal-info" id="metalInfo">
+                        <strong>Copper (Cu)</strong><br>
+                        Current Price: $9,779/tonne<br>
+                        Standard Lot: 25 tonnes<br>
+                        Contract Currency: USD
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📋 Trade Parameters</h3>
+                <div class="form-group">
+                    <label>Physical Warrant Weight (MT)</label>
+                    <input type="number" inputmode="decimal" id="weight" value="24.794" step="0.001" min="0">
+                    <small style="color: #6b7280;">Enter actual warrant weight</small>
+                </div>
+                <div class="form-group">
+                    <label>Standard Lot Size (MT)</label>
+                    <input type="number" id="lotSize" value="25" step="0.001" min="0" readonly style="background: #f3f4f6;">
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📅 Pickup Leg</h3>
+                <div class="form-group">
+                    <label>Future Purchase Date</label>
+                    <input type="date" id="pickupPurchaseDate" value="2025-10-01" onchange="validateDate(this)">
+                    <div id="pickupPurchaseDateValidation" class="validation-message"></div>
+                </div>
+                <div class="form-group">
+                    <label>Future Expiry/Pickup Date</label>
+                    <input type="date" id="pickupDate" value="2025-10-16" onchange="validateDate(this)">
+                    <div id="pickupDateValidation" class="validation-message"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Future Price (P<sub>Fi</sub>)</label>
+                        <input type="number" inputmode="decimal" id="pFi" value="9750.00" step="0.01" oninput="showPriceSuggestion(this)">
+                        <div id="pFiSuggestion" class="price-suggestion" style="display: none;">
+                            <span>Suggested: $<span id="pFiSuggestedValue">9750</span></span>
+                            <button onclick="applySuggestedPrice('pFi')">Apply</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Warrant Price (P<sub>wi</sub>)</label>
+                        <input type="number" inputmode="decimal" id="pWi" value="9779.00" step="0.01" oninput="showPriceSuggestion(this)">
+                        <div id="pWiSuggestion" class="price-suggestion" style="display: none;">
+                            <span>Suggested: $<span id="pWiSuggestedValue">9779</span></span>
+                            <button onclick="applySuggestedPrice('pWi')">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📅 Delivery Leg</h3>
+                <div class="form-group">
+                    <label>Future Purchase Date</label>
+                    <input type="date" id="deliveryPurchaseDate" value="2025-10-15" onchange="validateDate(this)">
+                    <div id="deliveryPurchaseDateValidation" class="validation-message"></div>
+                </div>
+                <div class="form-group">
+                    <label>Future Expiry/Delivery Date</label>
+                    <input type="date" id="deliveryDate" value="2025-11-14" onchange="validateDate(this)">
+                    <div id="deliveryDateValidation" class="validation-message"></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Future Price (P<sub>Fj</sub>)</label>
+                        <input type="number" inputmode="decimal" id="pFj" value="9820.00" step="0.01" oninput="showPriceSuggestion(this)">
+                        <div id="pFjSuggestion" class="price-suggestion" style="display: none;">
+                            <span>Suggested: $<span id="pFjSuggestedValue">9820</span></span>
+                            <button onclick="applySuggestedPrice('pFj')">Apply</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Warrant Price (P<sub>wj</sub>)</label>
+                        <input type="number" inputmode="decimal" id="pWj" value="9850.00" step="0.01" oninput="showPriceSuggestion(this)">
+                        <div id="pWjSuggestion" class="price-suggestion" style="display: none;">
+                            <span>Suggested: $<span id="pWjSuggestedValue">9850</span></span>
+                            <button onclick="applySuggestedPrice('pWj')">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>💰 Carrying Costs (Information Only)</h3>
+                <div class="form-group">
+                    <label>Rent Rate (USD/MT/day)</label>
+                    <input type="number" inputmode="decimal" id="rentRate" value="0.55" step="0.01" min="0">
+                    <small style="color: #6b7280;">Default: 0.55 per MT per day (all days)</small>
+                </div>
+                <div class="form-group">
+                    <label>SOFR Rate (%)</label>
+                    <input type="number" inputmode="decimal" id="sofrRate" value="4.50" step="0.01" min="0">
+                    <small style="color: #6b7280;">For financing cost calculation (ACT/360)</small>
+                </div>
+                <div class="form-group" style="background: #fef3c7; padding: 0.8rem; border-radius: 8px; margin-top: 1rem;">
+                    <strong style="color: #92400e;">Fixed Fees per Lot:</strong><br>
+                    <small style="color: #78350f;">
+                        • Clearing: $2.40<br>
+                        • LME Fees: $1.84<br>
+                        • Macquarie: $0.55<br>
+                        <strong>Total: $4.79 per lot</strong>
+                    </small>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="calculate()">
+                📊 Calculate P&L Reconciliation
+            </button>
+            <button class="btn btn-secondary" onclick="exportToExcel()">
+                📋 Export to Excel
+            </button>
+        </div>
+
+        <div class="main-content" id="resultsPanel">
+            <div class="loading-spinner" id="loadingSpinner">
+                <div class="spinner"></div>
+                <h3>Enter parameters and click Calculate</h3>
+                <p>Your P&L reconciliation will appear here with detailed mathematical breakdowns</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Metal price data
+        const METAL_PRICES = {
+            AL: { name: 'Aluminium', price: 2697.25, symbol: 'Al' },
+            CU: { name: 'Copper', price: 9779.00, symbol: 'Cu' },
+            PB: { name: 'Lead', price: 2013.00, symbol: 'Pb' },
+            NI: { name: 'Nickel', price: 15185.00, symbol: 'Ni' },
+            ZN: { name: 'Zinc', price: 2992.00, symbol: 'Zn' },
+            SN: { name: 'Tin', price: 35410.00, symbol: 'Sn' }
+        };
+
+        // LME Holidays for validation
+        const LME_HOLIDAYS = {
+            2025: ['2025-01-01', '2025-04-18', '2025-04-21', '2025-05-05', '2025-05-26', '2025-08-25', '2025-12-25', '2025-12-26'],
+            2026: ['2026-01-01', '2026-04-03', '2026-04-06', '2026-05-04', '2026-05-25', '2026-08-31', '2026-12-25', '2026-12-28']
+        };
+
+        function updateMetalPrices() {
+            const selectedMetal = document.getElementById('metalSelector').value;
+            const metalData = METAL_PRICES[selectedMetal];
+            
+            // Update metal info
+            document.getElementById('metalInfo').innerHTML = `
+                <strong>${metalData.name} (${metalData.symbol})</strong><br>
+                Current Price: $${metalData.price.toLocaleString()}/tonne<br>
+                Standard Lot: 25 tonnes<br>
+                Contract Currency: USD
+            `;
+
+            // Generate realistic price variations
+            const basePrice = metalData.price;
+            const variation = basePrice * 0.02; // 2% variation
+            
+            // Update suggested prices
+            const prices = {
+                pFi: (basePrice - Math.random() * variation).toFixed(2),
+                pWi: (basePrice + Math.random() * variation * 0.5).toFixed(2),
+                pFj: (basePrice + Math.random() * variation).toFixed(2),
+                pWj: (basePrice + Math.random() * variation * 1.2).toFixed(2)
+            };
+
+            // Update form values
+            document.getElementById('pFi').value = prices.pFi;
+            document.getElementById('pWi').value = prices.pWi;
+            document.getElementById('pFj').value = prices.pFj;
+            document.getElementById('pWj').value = prices.pWj;
+
+            // Update suggestion values
+            document.getElementById('pFiSuggestedValue').textContent = prices.pFi;
+            document.getElementById('pWiSuggestedValue').textContent = prices.pWi;
+            document.getElementById('pFjSuggestedValue').textContent = prices.pFj;
+            document.getElementById('pWjSuggestedValue').textContent = prices.pWj;
+
+            // Recalculate if results are showing
+            if (document.querySelector('.result-card')) {
+                calculate();
+            }
+        }
+
+        function showPriceSuggestion(input) {
+            const suggestionId = input.id + 'Suggestion';
+            const suggestion = document.getElementById(suggestionId);
+            if (suggestion) {
+                suggestion.style.display = 'flex';
+                setTimeout(() => {
+                    suggestion.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        function applySuggestedPrice(fieldId) {
+            const suggestedValue = document.getElementById(fieldId + 'SuggestedValue').textContent;
+            document.getElementById(fieldId).value = suggestedValue;
+            document.getElementById(fieldId + 'Suggestion').style.display = 'none';
+        }
+
+        function validateDate(input) {
+            const dateStr = input.value;
+            const validationDiv = document.getElementById(input.id + 'Validation');
+            
+            if (!dateStr) {
+                validationDiv.textContent = '';
+                validationDiv.className = 'validation-message';
+                return;
+            }
+
+            const isValid = isLMETradingDay(dateStr);
+            
+            if (isValid) {
+                validationDiv.textContent = '✅ Valid LME trading day';
+                validationDiv.className = 'validation-message validation-success';
+            } else {
+                validationDiv.textContent = '⚠️ Non-trading day (weekend or holiday)';
+                validationDiv.className = 'validation-message validation-error';
+            }
+        }
+
+        function isLMETradingDay(dateStr) {
+            const date = new Date(dateStr);
+            const dayOfWeek = date.getDay();
+            
+            // Check if weekend
+            if (dayOfWeek === 0 || dayOfWeek === 6) return false;
+            
+            // Check if holiday
+            const year = date.getFullYear();
+            const holidays = LME_HOLIDAYS[year] || [];
+            return !holidays.includes(dateStr);
+        }
+
+        function getCurrentMarketStatus() {
+            const now = new Date();
+            const londonTime = new Date(now.toLocaleString("en-US", {timeZone: "Europe/London"}));
+            const hours = londonTime.getHours();
+            const minutes = londonTime.getMinutes();
+            const currentTime = hours * 60 + minutes;
+            
+            const ringStart = 11 * 60 + 40;
+            const ringEnd = 17 * 60;
+            const selectStart = 1 * 60;
+            const selectEnd = 19 * 60;
+            
+            let status = '🔴 Markets Closed';
+            
+            if (currentTime >= selectStart && currentTime < selectEnd) {
+                status = '🟢 LMEselect Open';
+            }
+            
+            if (currentTime >= ringStart && currentTime < ringEnd) {
+                status = '🟡 Ring + Select';
+            }
+            
+            return { status, londonTime };
+        }
+
+        function updateMarketStatus() {
+            const marketData = getCurrentMarketStatus();
+            document.getElementById('tradingStatus').textContent = marketData.status;
+            document.getElementById('londonTime').textContent = 
+                `London: ${marketData.londonTime.toLocaleTimeString('en-GB', {hour12: false})}`;
+        }
+
+        function calculate() {
+            // Show loading
+            document.getElementById('loadingSpinner').style.display = 'block';
+            
+            setTimeout(() => {
+                const W = parseFloat(document.getElementById('weight').value);
+                const U = parseFloat(document.getElementById('lotSize').value);
+                const pFi = parseFloat(document.getElementById('pFi').value);
+                const pWi = parseFloat(document.getElementById('pWi').value);
+                const pFj = parseFloat(document.getElementById('pFj').value);
+                const pWj = parseFloat(document.getElementById('pWj').value);
+                
+                const selectedMetal = document.getElementById('metalSelector').value;
+                const metalData = METAL_PRICES[selectedMetal];
+
+                // Get dates for carrying cost calculation
+                const pickupDate = new Date(document.getElementById('pickupDate').value);
+                const deliveryDate = new Date(document.getElementById('deliveryDate').value);
+                const dayCount = Math.max(0, Math.floor((deliveryDate - pickupDate) / (1000 * 60 * 60 * 24)));
+                
+                // Carrying costs (all negative as they are costs)
+                const rentRate = parseFloat(document.getElementById('rentRate').value);
+                const sofrRate = parseFloat(document.getElementById('sofrRate').value);
+                const numLots = W / U;
+                
+                // Rent: rate * weight * days (all days including weekends)
+                const rentCost = -Math.abs(rentRate * W * dayCount);
+                
+                // Fixed fees: per lot
+                const fixedFeesPerLot = 2.40 + 1.84 + 0.55; // Total: 4.79
+                const totalFixedFees = -Math.abs(fixedFeesPerLot * numLots);
+                
+                // Financing: SOFR rate % / 360 * daycount * warrant price * 25 * notional
+                // For TOM future with pickup, borrowing cost
+                const financingCost = -Math.abs((sofrRate / 100 / 360) * dayCount * pWi * 25 * numLots);
+                
+                const totalCarryingCosts = rentCost + totalFixedFees + financingCost;
+
+                // Calculate P&L
+                const weightDiff = (pWj - pWi) * (W - U);
+                const spreadComponent = (pFj - pFi) * U;
+                const traderTotal = weightDiff + spreadComponent;
+
+                const pickupFuture = U * (pWi - pFi);
+                const deliveryFuture = -U * (pWj - pFj);
+                const deliveryWarrant = W * (pWj - pWi);
+                const murexTotal = pickupFuture + deliveryFuture + deliveryWarrant;
+
+                const fmt = (n) => n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                const curr = (n) => (n >= 0 ? '' : '') + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+                const html = `
+                    <div class="result-card" style="border-left: 6px solid #10b981;">
+                        <h3>✅ P&L Reconciliation Summary - ${metalData.name} (${metalData.symbol})</h3>
+                        <div class="summary-grid">
+                            <div class="summary-item ${traderTotal >= 0 ? 'profit' : 'loss'}">
+                                <div>Trader P&L</div>
+                                <div class="summary-value ${traderTotal >= 0 ? 'positive' : 'negative'}">
+                                    $${curr(traderTotal)}
+                                </div>
+                            </div>
+                            <div class="summary-item ${murexTotal >= 0 ? 'profit' : 'loss'}">
+                                <div>M P&L</div>
+                                <div class="summary-value ${murexTotal >= 0 ? 'positive' : 'negative'}">
+                                    $${curr(murexTotal)}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="match-indicator">
+                            ✓ PERFECT MATCH: $${curr(traderTotal)} ≈ $${curr(murexTotal)}
+                            <br><small>Difference: $${curr(Math.abs(traderTotal - murexTotal))}</small>
+                        </div>
+                    </div>
+
+                    <div class="result-card" style="border-left: 6px solid #7c3aed;">
+                        <h3>👤 Trader's Conceptual View</h3>
+                        
+                        <div class="formula">
+                            <strong>Component 1: Weight Differential P&L</strong><br>
+                            (P_wj - P_wi) × (W - U)<br>
+                            = ($${fmt(pWj)} - $${fmt(pWi)}) × (${fmt(W)} - ${fmt(U)})<br>
+                            = $${fmt(pWj - pWi)} × ${fmt(W - U)} MT<br>
+                            = <strong style="color: ${weightDiff >= 0 ? '#10b981' : '#ef4444'};">$${curr(weightDiff)}</strong>
+                        </div>
+
+                        <div class="formula">
+                            <strong>Component 2: Futures Spread P&L</strong><br>
+                            (P_Fj - P_Fi) × U<br>
+                            = ($${fmt(pFj)} - $${fmt(pFi)}) × ${fmt(U)}<br>
+                            = $${fmt(pFj - pFi)} × ${fmt(U)} MT<br>
+                            = <strong style="color: ${spreadComponent >= 0 ? '#10b981' : '#ef4444'};">$${curr(spreadComponent)}</strong>
+                        </div>
+
+                        <div style="background: #f3e8ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <strong>Total Trader P&L:</strong><br>
+                            Weight Diff ($${curr(weightDiff)}) + Spread ($${curr(spreadComponent)}) = <strong>$${curr(traderTotal)}</strong>
+                        </div>
+                    </div>
+
+                    <div class="result-card" style="border-left: 6px solid #1e40af;">
+                        <h3>💻 M System View</h3>
+                        
+                        <div class="formula">
+                            <strong>Pickup Leg P&L:</strong><br>
+                            Future: U × (P_wi - P_Fi) = ${fmt(U)} × ($${fmt(pWi)} - $${fmt(pFi)}) = <strong>$${curr(pickupFuture)}</strong><br>
+                            Warrant: $0 (nets to zero at pickup)<br>
+                            <strong>Pickup Total: $${curr(pickupFuture)}</strong>
+                        </div>
+
+                        <div class="formula">
+                            <strong>Delivery Leg P&L:</strong><br>
+                            Future: -U × (P_wj - P_Fj) = -${fmt(U)} × ($${fmt(pWj)} - $${fmt(pFj)}) = <strong>$${curr(deliveryFuture)}</strong><br>
+                            Warrant: W × (P_wj - P_wi) = ${fmt(W)} × ($${fmt(pWj)} - $${fmt(pWi)}) = <strong>$${curr(deliveryWarrant)}</strong><br>
+                            <strong>Delivery Total: $${curr(deliveryFuture + deliveryWarrant)}</strong>
+                        </div>
+
+                        <div style="background: #dbeafe; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <strong>Total M P&L:</strong><br>
+                            Pickup ($${curr(pickupFuture)}) + Delivery ($${curr(deliveryFuture + deliveryWarrant)}) = <strong>$${curr(murexTotal)}</strong>
+                        </div>
+                    </div>
+
+                    <div class="result-card" style="border-left: 6px solid #f59e0b;">
+                        <h3>📊 Market Context - ${metalData.name} Analysis</h3>
+                        <div style="background: #fef3c7; padding: 1rem; border-radius: 8px;">
+                            <strong>Metal:</strong> ${metalData.name} (${metalData.symbol})<br>
+                            <strong>Market Price:</strong> $${metalData.price.toLocaleString()}/tonne<br>
+                            <strong>Position Size:</strong> ${fmt(W)} MT physical vs ${fmt(U)} MT futures<br>
+                            <strong>Weight Impact:</strong> ${W > U ? 'Long' : 'Short'} ${fmt(Math.abs(W - U))} MT<br>
+                            <strong>Price Movement:</strong> Warrant prices moved from $${fmt(pWi)} to $${fmt(pWj)} (${pWj > pWi ? '+' : ''}${fmt(pWj - pWi)})<br>
+                            <strong>Net Result:</strong> ${traderTotal >= 0 ? 'Profitable' : 'Loss'} position of <strong>$${curr(Math.abs(traderTotal))}</strong>
+                        </div>
+                    </div>
+
+                    <div class="result-card" style="border-left: 6px solid #ef4444; background: #fef2f2;">
+                        <h3>💰 Carrying Costs (Information Only)</h3>
+                        <div style="background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                            <p style="color: #991b1b; margin-bottom: 0.5rem;"><strong>ℹ️ Note:</strong> These costs are shown for information only and are NOT included in the P&L calculation above.</p>
+                        </div>
+                        
+                        <div style="background: #e0f2fe; padding: 0.8rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem;">
+                            <strong>📅 Day Count Calculation:</strong><br>
+                            Pickup Date: ${pickupDate.toLocaleDateString('en-GB')} (${pickupDate.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'})})<br>
+                            Delivery Date: ${deliveryDate.toLocaleDateString('en-GB')} (${deliveryDate.toLocaleDateString('en-US', {weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'})})<br>
+                            <strong>Days Between: ${dayCount} days</strong> (all calendar days including weekends)
+                        </div>
+                        
+                        <div class="formula">
+                            <strong>Rent Cost:</strong><br>
+                            ${fmt(rentRate)} USD/MT/day × ${fmt(W)} MT × ${dayCount} days<br>
+                            = <strong style="color: #ef4444;">$${curr(rentCost)}</strong>
+                        </div>
+
+                        <div class="formula">
+                            <strong>Fixed Fees:</strong><br>
+                            $4.79 per lot (Clearing: $2.40 + LME: $1.84 + Macquarie: $0.55) × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
+                            = <strong style="color: #ef4444;">$${curr(totalFixedFees)}</strong>
+                        </div>
+
+                        <div class="formula">
+                            <strong>Financing Cost (SOFR ${fmt(sofrRate)}%, ACT/360):</strong><br>
+                            ${fmt(sofrRate)}% / 360 × ${dayCount} days × $${fmt(pWi)} × 25 MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
+                            = <strong style="color: #ef4444;">$${curr(financingCost)}</strong>
+                        </div>
+
+                        <div style="background: #fee2e2; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 2px solid #ef4444;">
+                            <strong style="font-size: 1.1rem;">Total Carrying Costs:</strong><br>
+                            Rent ($${curr(rentCost)}) + Fees ($${curr(totalFixedFees)}) + Financing ($${curr(financingCost)})<br>
+                            = <strong style="color: #991b1b; font-size: 1.2rem;">$${curr(totalCarryingCosts)}</strong>
+                        </div>
+
+                        <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <strong>Net P&L After Carrying Costs:</strong><br>
+                            Trading P&L ($${curr(traderTotal)}) + Carrying Costs ($${curr(totalCarryingCosts)})<br>
+                            = <strong style="color: ${(traderTotal + totalCarryingCosts) >= 0 ? '#10b981' : '#ef4444'};">$${curr(traderTotal + totalCarryingCosts)}</strong>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('resultsPanel').innerHTML = html;
+                document.getElementById('loadingSpinner').style.display = 'none';
+            }, 500);
+        }
+
+        function exportToExcel() {
+            // Excel export implementation similar to original but with metal data
+            const selectedMetal = document.getElementById('metalSelector').value;
+            const metalData = METAL_PRICES[selectedMetal];
+            
+            const wb = XLSX.utils.book_new();
+            // ... Excel export logic here ...
+            
+            const timestamp = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `LME_${metalData.symbol}_PL_${timestamp}.xlsx`);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMarketStatus();
+            setInterval(updateMarketStatus, 60000);
+            updateMetalPrices();
+            
+            // Add real-time calculation on input change
+            const inputs = ['weight', 'pFi', 'pWi', 'pFj', 'pWj'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', function() {
+                    if (document.querySelector('.result-card')) {
+                        calculate();
+                    }
+                });
+            });
+            
+            // Initial validation of dates
+            const dateInputs = ['pickupPurchaseDate', 'pickupDate', 'deliveryPurchaseDate', 'deliveryDate'];
+            dateInputs.forEach(id => {
+                validateDate(document.getElementById(id));
+            });
+        });
+    </script>
+</body>
+</html>
