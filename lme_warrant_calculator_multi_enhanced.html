@@ -568,7 +568,7 @@
                 <div class="form-group">
                     <label>Number of Futures Contracts</label>
                     <input type="number" inputmode="numeric" id="numContracts" value="5" step="1" min="1" max="1000" onchange="updateTotalFutures()">
-                    <small style="color: #6b7280;">Each contract = 25 MT standard lot</small>
+                    <small id="lotSizeInfo" style="color: #6b7280;">Each contract = 25 MT standard lot</small>
                 </div>
                 <div class="form-group">
                     <label>Total Futures Size (MT)</label>
@@ -694,28 +694,39 @@
 
         // Metal price data
         const METAL_PRICES = {
-            AL: { name: 'Aluminium', price: 2697.25, symbol: 'Al' },
-            CU: { name: 'Copper', price: 9779.00, symbol: 'Cu' },
-            PB: { name: 'Lead', price: 2013.00, symbol: 'Pb' },
-            NI: { name: 'Nickel', price: 15185.00, symbol: 'Ni' },
-            ZN: { name: 'Zinc', price: 2992.00, symbol: 'Zn' },
-            SN: { name: 'Tin', price: 35410.00, symbol: 'Sn' }
+            AL: { name: 'Aluminium', price: 2697.25, symbol: 'Al', lotSize: 25 },
+            CU: { name: 'Copper', price: 9779.00, symbol: 'Cu', lotSize: 25 },
+            PB: { name: 'Lead', price: 2013.00, symbol: 'Pb', lotSize: 25 },
+            NI: { name: 'Nickel', price: 15185.00, symbol: 'Ni', lotSize: 6 },
+            ZN: { name: 'Zinc', price: 2992.00, symbol: 'Zn', lotSize: 25 },
+            SN: { name: 'Tin', price: 35410.00, symbol: 'Sn', lotSize: 5 }
         };
 
         function updateTotalFutures() {
             const num = parseInt(document.getElementById('numContracts').value) || 1;
-            document.getElementById('totalFutures').value = (num * 25).toFixed(0);
+            const selectedMetal = document.getElementById('metalSelector').value;
+            const metalData = METAL_PRICES[selectedMetal];
+            document.getElementById('totalFutures').value = (num * metalData.lotSize).toFixed(0);
         }
 
         function updateMetalPrices() {
             const selectedMetal = document.getElementById('metalSelector').value;
             const metalData = METAL_PRICES[selectedMetal];
             
+            // Update lot size field automatically
+            document.getElementById('lotSize').value = metalData.lotSize;
+            
+            // Update total futures based on new lot size
+            updateTotalFutures();
+            
+            // Update lot size info text
+            document.getElementById('lotSizeInfo').textContent = `Each contract = ${metalData.lotSize} MT standard lot`;
+            
             // Update metal info
             document.getElementById('metalInfo').innerHTML = `
                 <strong>${metalData.name} (${metalData.symbol})</strong><br>
                 Current Price: $${metalData.price.toLocaleString()}/tonne<br>
-                Standard Lot: 25 tonnes<br>
+                Standard Lot: ${metalData.lotSize} tonnes<br>
                 Contract Currency: USD
             `;
 
@@ -768,7 +779,9 @@
                 `<div class="warrant-item">#${i+1}<br>${w.toFixed(3)}</div>`
             ).join('');
 
-            const totalFutures = numContracts * 25;
+            const selectedMetal = document.getElementById('metalSelector').value;
+            const metalData = METAL_PRICES[selectedMetal];
+            const totalFutures = numContracts * metalData.lotSize;
             document.getElementById('warrantCount').textContent = numContracts;
             document.getElementById('totalPhysicalWeight').textContent = totalWeight.toFixed(3);
             document.getElementById('weightDiff').textContent = (totalWeight - totalFutures).toFixed(3);
@@ -785,16 +798,16 @@
             document.getElementById('loadingSpinner').style.display = 'block';
             
             setTimeout(() => {
+                const selectedMetal = document.getElementById('metalSelector').value;
+                const metalData = METAL_PRICES[selectedMetal];
+                
                 const numContracts = warrants.length;
                 const W = warrants.reduce((sum, w) => sum + w, 0);
-                const U = numContracts * 25;
+                const U = numContracts * metalData.lotSize;
                 const pFi = parseFloat(document.getElementById('pFi').value);
                 const pWi = parseFloat(document.getElementById('pWi').value);
                 const pFj = parseFloat(document.getElementById('pFj').value);
                 const pWj = parseFloat(document.getElementById('pWj').value);
-                
-                const selectedMetal = document.getElementById('metalSelector').value;
-                const metalData = METAL_PRICES[selectedMetal];
 
                 // Get dates for carrying cost calculation
                 const pickupDate = new Date(document.getElementById('pickupDate').value);
@@ -804,17 +817,17 @@
                 // Carrying costs (all negative as they are costs)
                 const rentRate = parseFloat(document.getElementById('rentRate').value);
                 const sofrRate = parseFloat(document.getElementById('sofrRate').value);
-                const numLots = W / 25;
+                const numLots = W / metalData.lotSize;
                 
                 // Rent: rate * weight * days (all days including weekends)
                 const rentCost = -Math.abs(rentRate * W * dayCount);
                 
-                // Fixed fees: per lot
-                const fixedFeesPerLot = 2.40 + 1.84 + 0.55; // Total: 4.79
+                // Fixed fees: per lot (Clearing: $2.40 + LME: $1.84 + Macquarie: $0.55 = $4.79/lot)
+                const fixedFeesPerLot = 4.79;
                 const totalFixedFees = -Math.abs(fixedFeesPerLot * numLots);
                 
-                // Financing: SOFR rate % / 360 * daycount * warrant price * 25 * notional
-                const financingCost = -Math.abs((sofrRate / 100 / 360) * dayCount * pWi * 25 * numLots);
+                // Financing: SOFR rate % / 360 * daycount * warrant price * lotSize * notional
+                const financingCost = -Math.abs((sofrRate / 100 / 360) * dayCount * pWi * metalData.lotSize * numLots);
                 
                 const totalCarryingCosts = rentCost + totalFixedFees + financingCost;
 
@@ -838,7 +851,7 @@
                         <div style="background: #f0f9ff; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
                             <strong>Position Overview:</strong><br>
                             Metal: ${metalData.name} (${metalData.symbol})<br>
-                            Contracts: ${numContracts} × 25 MT = ${fmt(U)} MT futures<br>
+                            Contracts: ${numContracts} × ${metalData.lotSize} MT = ${fmt(U)} MT futures<br>
                             Physical: ${numContracts} warrants = ${fmt(W)} MT total<br>
                             Weight Differential: ${fmt(W - U)} MT
                         </div>
@@ -967,7 +980,7 @@
 
                         <div class="formula">
                             <strong>Financing Cost (SOFR ${fmt(sofrRate)}%, ACT/360):</strong><br>
-                            ${fmt(sofrRate)}% / 360 × ${dayCount} days × $${curr(pWi)} × 25 MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
+                            ${fmt(sofrRate)}% / 360 × ${dayCount} days × $${curr(pWi)} × ${metalData.lotSize} MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
                             = <strong style="color: #ef4444;">$${curr(financingCost)}</strong>
                         </div>
 
@@ -1000,7 +1013,7 @@
             const metalData = METAL_PRICES[selectedMetal];
             const numContracts = warrants.length;
             const W = warrants.reduce((sum, w) => sum + w, 0);
-            const U = numContracts * 25;
+            const U = numContracts * metalData.lotSize;
 
             const wb = XLSX.utils.book_new();
 
@@ -1008,8 +1021,8 @@
             const warrantsData = [
                 [`${metalData.name} (${metalData.symbol}) WARRANT PORTFOLIO`],
                 [],
-                ['Warrant #', 'Weight (MT)', 'Variance from 25MT'],
-                ...warrants.map((w, i) => [i + 1, w, w - 25]),
+                ['Warrant #', 'Weight (MT)', `Variance from ${metalData.lotSize}MT`],
+                ...warrants.map((w, i) => [i + 1, w, w - metalData.lotSize]),
                 [],
                 ['PORTFOLIO SUMMARY', '', ''],
                 ['Total Warrants', numContracts, ''],

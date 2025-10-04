@@ -694,12 +694,12 @@
     <script>
         // Metal price data
         const METAL_PRICES = {
-            AL: { name: 'Aluminium', price: 2697.25, symbol: 'Al' },
-            CU: { name: 'Copper', price: 9779.00, symbol: 'Cu' },
-            PB: { name: 'Lead', price: 2013.00, symbol: 'Pb' },
-            NI: { name: 'Nickel', price: 15185.00, symbol: 'Ni' },
-            ZN: { name: 'Zinc', price: 2992.00, symbol: 'Zn' },
-            SN: { name: 'Tin', price: 35410.00, symbol: 'Sn' }
+            AL: { name: 'Aluminium', price: 2697.25, symbol: 'Al', lotSize: 25 },
+            CU: { name: 'Copper', price: 9779.00, symbol: 'Cu', lotSize: 25 },
+            PB: { name: 'Lead', price: 2013.00, symbol: 'Pb', lotSize: 25 },
+            NI: { name: 'Nickel', price: 15185.00, symbol: 'Ni', lotSize: 6 },
+            ZN: { name: 'Zinc', price: 2992.00, symbol: 'Zn', lotSize: 25 },
+            SN: { name: 'Tin', price: 35410.00, symbol: 'Sn', lotSize: 5 }
         };
 
         // LME Holidays for validation
@@ -712,11 +712,14 @@
             const selectedMetal = document.getElementById('metalSelector').value;
             const metalData = METAL_PRICES[selectedMetal];
             
+            // Update lot size field automatically
+            document.getElementById('lotSize').value = metalData.lotSize;
+            
             // Update metal info
             document.getElementById('metalInfo').innerHTML = `
                 <strong>${metalData.name} (${metalData.symbol})</strong><br>
                 Current Price: $${metalData.price.toLocaleString()}/tonne<br>
-                Standard Lot: 25 tonnes<br>
+                Standard Lot: ${metalData.lotSize} tonnes<br>
                 Contract Currency: USD
             `;
 
@@ -861,13 +864,13 @@
                 // Rent: rate * weight * days (all days including weekends)
                 const rentCost = -Math.abs(rentRate * W * dayCount);
                 
-                // Fixed fees: per lot
-                const fixedFeesPerLot = 2.40 + 1.84 + 0.55; // Total: 4.79
+                // Fixed fees: per lot (Clearing: $2.40 + LME: $1.84 + Macquarie: $0.55 = $4.79/lot)
+                const fixedFeesPerLot = 4.79;
                 const totalFixedFees = -Math.abs(fixedFeesPerLot * numLots);
                 
-                // Financing: SOFR rate % / 360 * daycount * warrant price * 25 * notional
+                // Financing: SOFR rate % / 360 * daycount * warrant price * lotSize * notional
                 // For TOM future with pickup, borrowing cost
-                const financingCost = -Math.abs((sofrRate / 100 / 360) * dayCount * pWi * 25 * numLots);
+                const financingCost = -Math.abs((sofrRate / 100 / 360) * dayCount * pWi * metalData.lotSize * numLots);
                 
                 const totalCarryingCosts = rentCost + totalFixedFees + financingCost;
 
@@ -994,7 +997,7 @@
 
                         <div class="formula">
                             <strong>Financing Cost (SOFR ${fmt(sofrRate)}%, ACT/360):</strong><br>
-                            ${fmt(sofrRate)}% / 360 × ${dayCount} days × $${fmt(pWi)} × 25 MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
+                            ${fmt(sofrRate)}% / 360 × ${dayCount} days × $${fmt(pWi)} × ${metalData.lotSize} MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
                             = <strong style="color: #ef4444;">$${curr(financingCost)}</strong>
                         </div>
 
