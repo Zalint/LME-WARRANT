@@ -663,6 +663,11 @@
                     <input type="text" inputmode="decimal" id="sofrRate" value="4.50" pattern="[0-9.,]*">
                     <small style="color: #6b7280;">For financing cost calculation (ACT/360)</small>
                 </div>
+                <div class="form-group">
+                    <label>Day Count Override (optional)</label>
+                    <input type="text" inputmode="numeric" id="dayCountOverride" value="" pattern="[0-9]*" placeholder="Leave empty for auto">
+                    <small style="color: #6b7280;">Override automatic day count (deliveryDate - pickupDate)</small>
+                </div>
                 <div class="form-group" style="background: #fef3c7; padding: 0.8rem; border-radius: 8px; margin-top: 1rem;">
                     <strong style="color: #92400e; display: block; margin-bottom: 0.5rem;">Fixed Fees per Lot (Editable):</strong>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -885,7 +890,12 @@
                 // Get dates for carrying cost calculation
                 const pickupDate = new Date(document.getElementById('pickupDate').value);
                 const deliveryDate = new Date(document.getElementById('deliveryDate').value);
-                const dayCount = Math.max(0, Math.floor((deliveryDate - pickupDate) / (1000 * 60 * 60 * 24)));
+                
+                // Day count: use override if provided, otherwise calculate from dates
+                const dayCountOverride = parseInt(document.getElementById('dayCountOverride').value);
+                const dayCount = (dayCountOverride && dayCountOverride > 0) 
+                    ? dayCountOverride 
+                    : Math.max(0, Math.floor((deliveryDate - pickupDate) / (1000 * 60 * 60 * 24)));
                 
                 // Carrying costs (all negative as they are costs)
                 const rentRate = parseFloat(document.getElementById('rentRate').value.replace(/,/g, '.'));
@@ -1019,7 +1029,7 @@
                         
                         <div class="formula">
                             <strong>Rent Cost:</strong><br>
-                            ${fmt(rentRate)} USD/MT/day × ${fmt(W)} MT × ${dayCount} days<br>
+                            ${fmt(rentRate)} USD/MT/day × ${fmt(W)} MT × ${dayCount} days ${dayCountOverride && dayCountOverride > 0 ? '<span style="color: #f59e0b;">(manual override)</span>' : ''}<br>
                             = <strong style="color: #ef4444;">$${curr(rentCost)}</strong>
                         </div>
 
@@ -1031,7 +1041,7 @@
 
                         <div class="formula">
                             <strong>Financing Cost (SOFR ${fmt(sofrRate)}%, ACT/360):</strong><br>
-                            ${fmt(sofrRate)}% / 360 × ${dayCount} days × $${fmt(pWi)} × ${metalData.lotSize} MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
+                            ${fmt(sofrRate)}% / 360 × ${dayCount} days ${dayCountOverride && dayCountOverride > 0 ? '<span style="color: #f59e0b;">(manual override)</span>' : ''} × $${fmt(pWi)} × ${metalData.lotSize} MT × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
                             = <strong style="color: #ef4444;">$${curr(financingCost)}</strong>
                         </div>
 
@@ -1133,7 +1143,8 @@
                 sofrRate: document.getElementById('sofrRate').value,
                 feesClearing: document.getElementById('feesClearing').value,
                 feesLME: document.getElementById('feesLME').value,
-                feesMacquarie: document.getElementById('feesMacquarie').value
+                feesMacquarie: document.getElementById('feesMacquarie').value,
+                dayCountOverride: document.getElementById('dayCountOverride').value
             };
             localStorage.setItem('lme_calculator_data', JSON.stringify(formData));
         }
@@ -1159,6 +1170,7 @@
                     if (formData.feesClearing) document.getElementById('feesClearing').value = formData.feesClearing;
                     if (formData.feesLME) document.getElementById('feesLME').value = formData.feesLME;
                     if (formData.feesMacquarie) document.getElementById('feesMacquarie').value = formData.feesMacquarie;
+                    if (formData.dayCountOverride) document.getElementById('dayCountOverride').value = formData.dayCountOverride;
                     
                     // Update metal prices and fees total after loading
                     updateMetalPrices();
@@ -1202,7 +1214,7 @@
             // Save data on input change
             const allInputs = ['metalSelector', 'weight', 'lotSize', 'pickupDate', 'deliveryDate', 
                               'pFi', 'pWi', 'pFj', 'pWj', 'rentRate', 'sofrRate', 
-                              'feesClearing', 'feesLME', 'feesMacquarie'];
+                              'feesClearing', 'feesLME', 'feesMacquarie', 'dayCountOverride'];
             allInputs.forEach(id => {
                 const element = document.getElementById(id);
                 element.addEventListener('input', saveFormData);

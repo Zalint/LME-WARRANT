@@ -661,6 +661,11 @@
                     <input type="text" inputmode="decimal" id="sofrRate" value="4.50" pattern="[0-9.,]*">
                     <small style="color: #6b7280;">For financing cost calculation (ACT/360)</small>
                 </div>
+                <div class="form-group">
+                    <label>Day Count Override (optional)</label>
+                    <input type="text" inputmode="numeric" id="dayCountOverride" value="" pattern="[0-9]*" placeholder="Leave empty for auto">
+                    <small style="color: #6b7280;">Override automatic day count (deliveryDate - pickupDate)</small>
+                </div>
                 <div class="form-group" style="background: #fef3c7; padding: 0.8rem; border-radius: 8px; margin-top: 1rem;">
                     <strong style="color: #92400e; display: block; margin-bottom: 0.5rem;">Fixed Fees per Lot (Editable):</strong>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -843,7 +848,12 @@
                 // Get dates for carrying cost calculation
                 const pickupDate = new Date(document.getElementById('pickupDate').value);
                 const deliveryDate = new Date(document.getElementById('deliveryDate').value);
-                const dayCount = Math.max(0, Math.floor((deliveryDate - pickupDate) / (1000 * 60 * 60 * 24)));
+                
+                // Day count: use override if provided, otherwise calculate from dates
+                const dayCountOverride = parseInt(document.getElementById('dayCountOverride').value);
+                const dayCount = (dayCountOverride && dayCountOverride > 0) 
+                    ? dayCountOverride 
+                    : Math.max(0, Math.floor((deliveryDate - pickupDate) / (1000 * 60 * 60 * 24)));
                 
                 // Carrying costs (all negative as they are costs)
                 const rentRate = parseFloat(document.getElementById('rentRate').value.replace(/,/g, '.'));
@@ -1143,7 +1153,8 @@
                 sofrRate: document.getElementById('sofrRate').value,
                 feesClearing: document.getElementById('feesClearing').value,
                 feesLME: document.getElementById('feesLME').value,
-                feesMacquarie: document.getElementById('feesMacquarie').value
+                feesMacquarie: document.getElementById('feesMacquarie').value,
+                dayCountOverride: document.getElementById('dayCountOverride').value
             };
             localStorage.setItem('lme_calculator_multi_data', JSON.stringify(formData));
         }
@@ -1170,6 +1181,7 @@
                     if (formData.feesClearing) document.getElementById('feesClearing').value = formData.feesClearing;
                     if (formData.feesLME) document.getElementById('feesLME').value = formData.feesLME;
                     if (formData.feesMacquarie) document.getElementById('feesMacquarie').value = formData.feesMacquarie;
+                    if (formData.dayCountOverride) document.getElementById('dayCountOverride').value = formData.dayCountOverride;
                     
                     // Update metal prices and fees total after loading
                     updateMetalPrices();
