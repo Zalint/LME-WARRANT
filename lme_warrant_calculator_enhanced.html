@@ -1087,12 +1087,136 @@
         }
 
         function exportToExcel() {
-            // Excel export implementation similar to original but with metal data
+            // Get all input values
             const selectedMetal = document.getElementById('metalSelector').value;
             const metalData = METAL_PRICES[selectedMetal];
+            const W = parseFloat(document.getElementById('weight').value.replace(/,/g, '.'));
+            const U = parseFloat(document.getElementById('lotSize').value.replace(/,/g, '.'));
+            const pFi = parseFloat(document.getElementById('pFi').value.replace(/,/g, '.'));
+            const pWi = parseFloat(document.getElementById('pWi').value.replace(/,/g, '.'));
+            const pFj = parseFloat(document.getElementById('pFj').value.replace(/,/g, '.'));
+            const pWj = parseFloat(document.getElementById('pWj').value.replace(/,/g, '.'));
+            const pickupDate = document.getElementById('pickupDate').value;
+            const deliveryDate = document.getElementById('deliveryDate').value;
+            
+            // Carrying costs
+            const rentRate = parseFloat(document.getElementById('rentRate').value.replace(/,/g, '.'));
+            const sofrRate = parseFloat(document.getElementById('sofrRate').value.replace(/,/g, '.'));
+            const feesClearing = parseFloat(document.getElementById('feesClearing').value.replace(/,/g, '.'));
+            const feesLME = parseFloat(document.getElementById('feesLME').value.replace(/,/g, '.'));
+            const feesMacquarie = parseFloat(document.getElementById('feesMacquarie').value.replace(/,/g, '.'));
             
             const wb = XLSX.utils.book_new();
-            // ... Excel export logic here ...
+            
+            // Inputs Sheet
+            const inputsData = [
+                ['LME PHYSICAL WARRANT P&L CALCULATOR - INPUTS'],
+                ['Metal: ' + metalData.name + ' (' + metalData.symbol + ')'],
+                [],
+                ['Parameter', 'Symbol', 'Value', 'Unit'],
+                ['Physical Warrant Weight', 'W', W, 'MT'],
+                ['Standard Lot Size', 'U', U, 'MT'],
+                ['Weight Differential', 'W - U', W - U, 'MT'],
+                [],
+                ['PICKUP LEG', '', '', ''],
+                ['Future Expiry/Pickup Date', '', pickupDate, ''],
+                ['Future Purchase Price', 'P_Fi', pFi, 'USD/MT'],
+                ['Warrant Pickup Price', 'P_wi', pWi, 'USD/MT'],
+                ['Price Difference (Pickup)', 'P_wi - P_Fi', pWi - pFi, 'USD/MT'],
+                [],
+                ['DELIVERY LEG', '', '', ''],
+                ['Future Expiry/Delivery Date', '', deliveryDate, ''],
+                ['Future Price', 'P_Fj', pFj, 'USD/MT'],
+                ['Warrant Delivery Price', 'P_wj', pWj, 'USD/MT'],
+                ['Price Difference (Delivery)', 'P_wj - P_Fj', pWj - pFj, 'USD/MT'],
+                ['Warrant Price Change', 'P_wj - P_wi', pWj - pWi, 'USD/MT'],
+                ['Future Spread', 'P_Fj - P_Fi', pFj - pFi, 'USD/MT'],
+                [],
+                ['CARRYING COSTS', '', '', ''],
+                ['Rent Rate', '', rentRate, 'USD/MT/day'],
+                ['SOFR Rate', '', sofrRate, '%'],
+                ['Clearing Fees', '', feesClearing, 'USD/lot'],
+                ['LME Fees', '', feesLME, 'USD/lot'],
+                ['Macquarie Fees', '', feesMacquarie, 'USD/lot']
+            ];
+            
+            const wsInputs = XLSX.utils.aoa_to_sheet(inputsData);
+            wsInputs['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 10 }];
+            XLSX.utils.book_append_sheet(wb, wsInputs, 'Inputs');
+            
+            // Trader View Sheet
+            const weightDiff = (pWj - pWi) * (W - U);
+            const spreadPL = (pFj - pFi) * U;
+            const pickupLegFuture = U * (pWi - pFi);
+            const pickupLegTotal = pickupLegFuture;
+            const deliveryLegSpread = spreadPL - pickupLegFuture;
+            const deliveryLegTotal = weightDiff + deliveryLegSpread;
+            const totalPL = pickupLegTotal + deliveryLegTotal;
+            
+            const traderData = [
+                ['TRADER VIEW - P&L CALCULATION'],
+                [],
+                ['Component', 'Formula', 'Calculation', 'Result (USD)'],
+                [],
+                ['COMPONENT 1: Weight Differential P&L', '', '', ''],
+                ['  P_wj - P_wi', '', pWj - pWi, ''],
+                ['  W - U', '', W - U, ''],
+                ['  Weight Diff P&L', '(P_wj - P_wi) × (W - U)', '', weightDiff],
+                [],
+                ['COMPONENT 2: Futures Spread P&L', '', '', ''],
+                ['  P_Fj - P_Fi', '', pFj - pFi, ''],
+                ['  U', '', U, ''],
+                ['  Spread P&L', '(P_Fj - P_Fi) × U', '', spreadPL],
+                [],
+                ['LEG BREAKDOWN', '', '', ''],
+                [],
+                ['PICKUP LEG P&L', '', '', ''],
+                ['  Future', 'U × (P_wi - P_Fi)', '', pickupLegFuture],
+                ['  Warrant', '', '', 0],
+                ['  Pickup Total', '', '', pickupLegTotal],
+                [],
+                ['DELIVERY LEG P&L', '', '', ''],
+                ['  Weight Differential', '', '', weightDiff],
+                ['  Spread (net of pickup)', '', '', deliveryLegSpread],
+                ['  Delivery Total', '', '', deliveryLegTotal],
+                [],
+                ['TOTAL P&L', '', '', totalPL]
+            ];
+            
+            const wsTrader = XLSX.utils.aoa_to_sheet(traderData);
+            wsTrader['!cols'] = [{ wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, wsTrader, 'Trader View');
+            
+            // M View Sheet
+            const pickupFuturePL = U * (pWi - pFi);
+            const deliveryFuturePL = U * (pFj - pWj);
+            const pickupWarrantPL = W * (pWi - pWi);
+            const deliveryWarrantPL = W * (pWj - pWj);
+            const totalMPL = pickupFuturePL + deliveryFuturePL + pickupWarrantPL + deliveryWarrantPL;
+            
+            const murexData = [
+                ['M VIEW - P&L CALCULATION'],
+                [],
+                ['Component', 'Formula', 'Calculation', 'Result (USD)'],
+                [],
+                ['PICKUP LEG', '', '', ''],
+                ['  Future P&L', 'U × (P_wi - P_Fi)', '', pickupFuturePL],
+                ['  Warrant P&L', 'W × (P_wi - P_wi)', '', pickupWarrantPL],
+                ['  Pickup Total', '', '', pickupFuturePL + pickupWarrantPL],
+                [],
+                ['DELIVERY LEG', '', '', ''],
+                ['  Future P&L', 'U × (P_Fj - P_wj)', '', deliveryFuturePL],
+                ['  Warrant P&L', 'W × (P_wj - P_wj)', '', deliveryWarrantPL],
+                ['  Delivery Total', '', '', deliveryFuturePL + deliveryWarrantPL],
+                [],
+                ['TOTAL P&L', '', '', totalMPL],
+                [],
+                ['NOTE: Trader View P&L = M View P&L', '', '', '']
+            ];
+            
+            const wsMurex = XLSX.utils.aoa_to_sheet(murexData);
+            wsMurex['!cols'] = [{ wch: 30 }, { wch: 30 }, { wch: 20 }, { wch: 15 }];
+            XLSX.utils.book_append_sheet(wb, wsMurex, 'M View');
             
             const timestamp = new Date().toISOString().slice(0, 10);
             XLSX.writeFile(wb, `LME_${metalData.symbol}_PL_${timestamp}.xlsx`);
