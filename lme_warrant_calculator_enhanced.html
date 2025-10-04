@@ -1191,7 +1191,7 @@
             const pickupFuturePL = U * (pWi - pFi);
             const deliveryFuturePL = U * (pFj - pWj);
             const pickupWarrantPL = W * (pWi - pWi);
-            const deliveryWarrantPL = W * (pWj - pWj);
+            const deliveryWarrantPL = W * (pWj - pWi);
             const totalMPL = pickupFuturePL + deliveryFuturePL + pickupWarrantPL + deliveryWarrantPL;
             
             const murexData = [
@@ -1206,7 +1206,7 @@
                 [],
                 ['DELIVERY LEG', '', '', ''],
                 ['  Future P&L', 'U × (P_Fj - P_wj)', '', deliveryFuturePL],
-                ['  Warrant P&L', 'W × (P_wj - P_wj)', '', deliveryWarrantPL],
+                ['  Warrant P&L', 'W × (P_wj - P_wi)', '', deliveryWarrantPL],
                 ['  Delivery Total', '', '', deliveryFuturePL + deliveryWarrantPL],
                 [],
                 ['TOTAL P&L', '', '', totalMPL],
