@@ -880,7 +880,7 @@
                 const totalFixedFees = -Math.abs(fixedFeesPerLot * numLots);
                 
                 // Financing: SOFR rate % / 360 * daycount * warrant price * lotSize * notional
-                const financingCost = -Math.abs((sofrRate / 100 / 360) * dayCount * pWi * metalData.lotSize * numLots);
+                const financingCost = -Math.abs((sofrRate / 100 / 360) * sofrDayCount * pWi * metalData.lotSize * numLots);
                 
                 const totalCarryingCosts = rentCost + totalFixedFees + financingCost;
 
@@ -1238,7 +1238,7 @@
             // Save data on input change
             const allInputs = ['metalSelector', 'numContracts', 'minWeight', 'maxWeight', 'pickupDate', 'deliveryDate', 
                               'pFi', 'pWi', 'pFj', 'pWj', 'rentRate', 'sofrRate', 
-                              'feesClearing', 'feesLME', 'feesMacquarie'];
+                              'feesClearing', 'feesLME', 'feesMacquarie', 'rentDayCountOverride', 'dayCountOverride'];
             allInputs.forEach(id => {
                 const element = document.getElementById(id);
                 element.addEventListener('input', saveFormData);
