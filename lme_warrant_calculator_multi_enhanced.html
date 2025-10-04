@@ -870,7 +870,7 @@
                 const numLots = W / metalData.lotSize;
                 
                 // Rent: rate * weight * days (all days including weekends)
-                const rentCost = -Math.abs(rentRate * W * dayCount);
+                const rentCost = -Math.abs(rentRate * W * rentDayCount);
                 
                 // Fixed fees: per lot (editable)
                 const feesClearing = parseFloat(document.getElementById('feesClearing').value.replace(/,/g, '.')) || 2.40;
