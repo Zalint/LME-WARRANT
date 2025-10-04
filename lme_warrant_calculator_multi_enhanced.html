@@ -662,13 +662,24 @@
                     <small style="color: #6b7280;">For financing cost calculation (ACT/360)</small>
                 </div>
                 <div class="form-group" style="background: #fef3c7; padding: 0.8rem; border-radius: 8px; margin-top: 1rem;">
-                    <strong style="color: #92400e;">Fixed Fees per Lot:</strong><br>
-                    <small style="color: #78350f;">
-                        • Clearing: $2.40<br>
-                        • LME Fees: $1.84<br>
-                        • Macquarie: $0.55<br>
-                        <strong>Total: $4.79 per lot</strong>
-                    </small>
+                    <strong style="color: #92400e; display: block; margin-bottom: 0.5rem;">Fixed Fees per Lot (Editable):</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <div>
+                            <label style="font-size: 0.75rem; color: #78350f; display: block; margin-bottom: 0.2rem;">Clearing ($)</label>
+                            <input type="number" inputmode="decimal" id="feesClearing" value="2.40" step="0.01" min="0" style="font-size: 0.85rem; padding: 0.4rem;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: #78350f; display: block; margin-bottom: 0.2rem;">LME Fees ($)</label>
+                            <input type="number" inputmode="decimal" id="feesLME" value="1.84" step="0.01" min="0" style="font-size: 0.85rem; padding: 0.4rem;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.75rem; color: #78350f; display: block; margin-bottom: 0.2rem;">Macquarie ($)</label>
+                        <input type="number" inputmode="decimal" id="feesMacquarie" value="0.55" step="0.01" min="0" style="font-size: 0.85rem; padding: 0.4rem; width: calc(50% - 0.25rem);">
+                    </div>
+                    <div style="background: #fbbf24; padding: 0.4rem; border-radius: 4px; text-align: center;">
+                        <strong style="color: #78350f;">Total: $<span id="feesTotal">4.79</span> per lot</strong>
+                    </div>
                 </div>
             </div>
 
@@ -677,6 +688,9 @@
             </button>
             <button class="btn btn-secondary" onclick="exportToExcel()">
                 📋 Export to Excel
+            </button>
+            <button class="btn" onclick="clearSavedData()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; margin-top: 0.5rem;">
+                🗑️ Clear Saved Data
             </button>
         </div>
 
@@ -835,8 +849,11 @@
                 // Rent: rate * weight * days (all days including weekends)
                 const rentCost = -Math.abs(rentRate * W * dayCount);
                 
-                // Fixed fees: per lot (Clearing: $2.40 + LME: $1.84 + Macquarie: $0.55 = $4.79/lot)
-                const fixedFeesPerLot = 4.79;
+                // Fixed fees: per lot (editable)
+                const feesClearing = parseFloat(document.getElementById('feesClearing').value) || 2.40;
+                const feesLME = parseFloat(document.getElementById('feesLME').value) || 1.84;
+                const feesMacquarie = parseFloat(document.getElementById('feesMacquarie').value) || 0.55;
+                const fixedFeesPerLot = feesClearing + feesLME + feesMacquarie;
                 const totalFixedFees = -Math.abs(fixedFeesPerLot * numLots);
                 
                 // Financing: SOFR rate % / 360 * daycount * warrant price * lotSize * notional
@@ -987,7 +1004,7 @@
 
                         <div class="formula">
                             <strong>Fixed Fees:</strong><br>
-                            $4.79 per lot (Clearing: $2.40 + LME: $1.84 + Macquarie: $0.55) × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
+                            $${fmt(fixedFeesPerLot)} per lot (Clearing: $${fmt(feesClearing)} + LME: $${fmt(feesLME)} + Macquarie: $${fmt(feesMacquarie)}) × ${Math.round(numLots)} lot${Math.round(numLots) !== 1 ? 's' : ''}<br>
                             = <strong style="color: #ef4444;">$${curr(totalFixedFees)}</strong>
                         </div>
 
@@ -1053,10 +1070,100 @@
             XLSX.writeFile(wb, `LME_${metalData.symbol}_Portfolio_${numContracts}contracts_${timestamp}.xlsx`);
         }
 
+        // Update fees total
+        function updateFeesTotal() {
+            const clearing = parseFloat(document.getElementById('feesClearing').value) || 0;
+            const lme = parseFloat(document.getElementById('feesLME').value) || 0;
+            const macquarie = parseFloat(document.getElementById('feesMacquarie').value) || 0;
+            const total = (clearing + lme + macquarie).toFixed(2);
+            document.getElementById('feesTotal').textContent = total;
+        }
+
+        // Save data to localStorage
+        function saveFormData() {
+            const formData = {
+                metalSelector: document.getElementById('metalSelector').value,
+                numContracts: document.getElementById('numContracts').value,
+                minWeight: document.getElementById('minWeight').value,
+                maxWeight: document.getElementById('maxWeight').value,
+                pickupDate: document.getElementById('pickupDate').value,
+                deliveryDate: document.getElementById('deliveryDate').value,
+                pFi: document.getElementById('pFi').value,
+                pWi: document.getElementById('pWi').value,
+                pFj: document.getElementById('pFj').value,
+                pWj: document.getElementById('pWj').value,
+                rentRate: document.getElementById('rentRate').value,
+                sofrRate: document.getElementById('sofrRate').value,
+                feesClearing: document.getElementById('feesClearing').value,
+                feesLME: document.getElementById('feesLME').value,
+                feesMacquarie: document.getElementById('feesMacquarie').value
+            };
+            localStorage.setItem('lme_calculator_multi_data', JSON.stringify(formData));
+        }
+
+        // Load data from localStorage
+        function loadFormData() {
+            const savedData = localStorage.getItem('lme_calculator_multi_data');
+            if (savedData) {
+                try {
+                    const formData = JSON.parse(savedData);
+                    
+                    if (formData.metalSelector) document.getElementById('metalSelector').value = formData.metalSelector;
+                    if (formData.numContracts) document.getElementById('numContracts').value = formData.numContracts;
+                    if (formData.minWeight) document.getElementById('minWeight').value = formData.minWeight;
+                    if (formData.maxWeight) document.getElementById('maxWeight').value = formData.maxWeight;
+                    if (formData.pickupDate) document.getElementById('pickupDate').value = formData.pickupDate;
+                    if (formData.deliveryDate) document.getElementById('deliveryDate').value = formData.deliveryDate;
+                    if (formData.pFi) document.getElementById('pFi').value = formData.pFi;
+                    if (formData.pWi) document.getElementById('pWi').value = formData.pWi;
+                    if (formData.pFj) document.getElementById('pFj').value = formData.pFj;
+                    if (formData.pWj) document.getElementById('pWj').value = formData.pWj;
+                    if (formData.rentRate) document.getElementById('rentRate').value = formData.rentRate;
+                    if (formData.sofrRate) document.getElementById('sofrRate').value = formData.sofrRate;
+                    if (formData.feesClearing) document.getElementById('feesClearing').value = formData.feesClearing;
+                    if (formData.feesLME) document.getElementById('feesLME').value = formData.feesLME;
+                    if (formData.feesMacquarie) document.getElementById('feesMacquarie').value = formData.feesMacquarie;
+                    
+                    // Update metal prices and fees total after loading
+                    updateMetalPrices();
+                    updateFeesTotal();
+                } catch (e) {
+                    console.error('Error loading saved data:', e);
+                }
+            }
+        }
+
+        // Clear saved data
+        function clearSavedData() {
+            if (confirm('Are you sure you want to clear all saved data?')) {
+                localStorage.removeItem('lme_calculator_multi_data');
+                alert('✅ Saved data cleared successfully!');
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             updateMetalPrices();
+            
+            // Load saved data
+            loadFormData();
+            
             generateWarrants(); // Auto-generate on load
+            
+            // Save data on input change
+            const allInputs = ['metalSelector', 'numContracts', 'minWeight', 'maxWeight', 'pickupDate', 'deliveryDate', 
+                              'pFi', 'pWi', 'pFj', 'pWj', 'rentRate', 'sofrRate', 
+                              'feesClearing', 'feesLME', 'feesMacquarie'];
+            allInputs.forEach(id => {
+                const element = document.getElementById(id);
+                element.addEventListener('input', saveFormData);
+                element.addEventListener('change', saveFormData);
+            });
+            
+            // Update fees total on change
+            ['feesClearing', 'feesLME', 'feesMacquarie'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateFeesTotal);
+            });
             
             // Update total futures when contract number changes
             document.getElementById('numContracts').addEventListener('input', function() {
