@@ -1197,6 +1197,19 @@
             
             generateWarrants(); // Auto-generate on load
             
+            // Auto-normalize comma to dot on blur (when leaving the field)
+            const numberInputs = ['numContracts', 'minWeight', 'maxWeight', 'pFi', 'pWi', 'pFj', 'pWj', 
+                                 'rentRate', 'sofrRate', 'feesClearing', 'feesLME', 'feesMacquarie'];
+            numberInputs.forEach(id => {
+                const element = document.getElementById(id);
+                element.addEventListener('blur', function() {
+                    if (this.value) {
+                        this.value = this.value.replace(/,/g, '.');
+                        saveFormData(); // Save after normalization
+                    }
+                });
+            });
+            
             // Save data on input change
             const allInputs = ['metalSelector', 'numContracts', 'minWeight', 'maxWeight', 'pickupDate', 'deliveryDate', 
                               'pFi', 'pWi', 'pFj', 'pWj', 'rentRate', 'sofrRate', 
@@ -1210,6 +1223,7 @@
             // Update fees total on change
             ['feesClearing', 'feesLME', 'feesMacquarie'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateFeesTotal);
+                document.getElementById(id).addEventListener('blur', updateFeesTotal);
             });
             
             // Update total futures when contract number changes

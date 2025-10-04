@@ -1186,6 +1186,19 @@
             // Load saved data
             loadFormData();
             
+            // Auto-normalize comma to dot on blur (when leaving the field)
+            const numberInputs = ['weight', 'lotSize', 'pFi', 'pWi', 'pFj', 'pWj', 'rentRate', 'sofrRate', 
+                                 'feesClearing', 'feesLME', 'feesMacquarie'];
+            numberInputs.forEach(id => {
+                const element = document.getElementById(id);
+                element.addEventListener('blur', function() {
+                    if (this.value) {
+                        this.value = this.value.replace(/,/g, '.');
+                        saveFormData(); // Save after normalization
+                    }
+                });
+            });
+            
             // Save data on input change
             const allInputs = ['metalSelector', 'weight', 'lotSize', 'pickupDate', 'deliveryDate', 
                               'pFi', 'pWi', 'pFj', 'pWj', 'rentRate', 'sofrRate', 
@@ -1199,6 +1212,7 @@
             // Update fees total on change
             ['feesClearing', 'feesLME', 'feesMacquarie'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateFeesTotal);
+                document.getElementById(id).addEventListener('blur', updateFeesTotal);
             });
             
             // Add real-time calculation on input change
