@@ -201,7 +201,22 @@
         </div>
     </div>
 
+    <!-- Load configuration (generated at build time from env vars) -->
+    <script src="config.js"></script>
+    
     <script>
+        // Check if config is loaded
+        if (typeof APP_CONFIG === 'undefined') {
+            console.error('❌ Configuration file not loaded. Run build.sh to generate config.js');
+            // Fallback to default values for development
+            window.APP_CONFIG = {
+                credentials: {
+                    username: 'ADMIN',
+                    password: 'ADMIN@MXT1'
+                }
+            };
+        }
+
         // Check if already logged in
         if (sessionStorage.getItem('lme_auth_token') === 'authenticated') {
             window.location.href = 'index.html';
@@ -214,8 +229,9 @@
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
             
-            // Validate credentials
-            if (username === 'ADMIN' && password === 'ADMIN@MXT1') {
+            // Validate credentials against config
+            if (username === APP_CONFIG.credentials.username && 
+                password === APP_CONFIG.credentials.password) {
                 // Set session
                 sessionStorage.setItem('lme_auth_token', 'authenticated');
                 sessionStorage.setItem('lme_user', username);

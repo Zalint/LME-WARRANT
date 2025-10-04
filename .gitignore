@@ -1,0 +1,21 @@
+# Generated configuration file (contains sensitive credentials)
+config.js
+
+# Environment variables (if used locally)
+.env
+
+# Node modules (if you ever add them)
+node_modules/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+

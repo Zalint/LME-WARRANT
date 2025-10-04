@@ -4,15 +4,40 @@ This comprehensive application suite provides professional calculators for recon
 
 ## 🔐 Access Control
 
-This application is protected by authentication. Use the following credentials to access:
+This application is protected by authentication using environment variables.
 
 **Login Page:** `login.html`
 
-**Credentials:**
-- **Username:** `ADMIN`
-- **Password:** `ADMIN@MXT1`
+### 🌐 Deployment on Render.com (Recommended)
 
-> ⚠️ **Note:** This is a demonstration authentication system using session storage. For production use, implement proper backend authentication with secure password hashing and HTTPS.
+1. **Create a Static Site** on Render.com
+2. **Configure Environment Variables** in Render Dashboard:
+   - `USER_NAME` - Your username (e.g., `ADMIN`)
+   - `USER_PASSWORD` - Your password (e.g., `ADMIN@MXT1`)
+3. **Set Build Command**: `chmod +x build.sh && ./build.sh`
+4. **Set Publish Directory**: `.`
+5. Deploy! 🚀
+
+The `build.sh` script will automatically generate `config.js` from your environment variables at build time.
+
+### 💻 Local Development
+
+1. **Run the build script** to generate `config.js`:
+   ```bash
+   # On Windows PowerShell
+   $env:USER_NAME="ADMIN"; $env:USER_PASSWORD="ADMIN@MXT1"; bash build.sh
+   
+   # On Linux/Mac
+   USER_NAME=ADMIN USER_PASSWORD=ADMIN@MXT1 bash build.sh
+   ```
+
+2. **Open** `login.html` in your browser
+
+> ⚠️ **Security Notes:**
+> - `config.js` is git-ignored and generated at build time
+> - Never commit credentials to the repository
+> - For production, use strong passwords and HTTPS
+> - This is a simple authentication using session storage (client-side)
 
 ## Files
 
