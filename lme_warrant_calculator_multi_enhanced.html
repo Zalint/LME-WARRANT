@@ -689,6 +689,9 @@
             <button class="btn btn-secondary" onclick="exportToExcel()">
                 📋 Export to Excel
             </button>
+            <button class="btn" onclick="manualSaveData()" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; margin-top: 0.5rem;">
+                💾 Save Data
+            </button>
             <button class="btn" onclick="clearSavedData()" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; margin-top: 0.5rem;">
                 🗑️ Clear Saved Data
             </button>
@@ -831,10 +834,11 @@
                 const numContracts = warrants.length;
                 const W = warrants.reduce((sum, w) => sum + w, 0);
                 const U = numContracts * metalData.lotSize;
-                const pFi = parseFloat(document.getElementById('pFi').value);
-                const pWi = parseFloat(document.getElementById('pWi').value);
-                const pFj = parseFloat(document.getElementById('pFj').value);
-                const pWj = parseFloat(document.getElementById('pWj').value);
+                // Normalize and parse inputs (accept both comma and dot)
+                const pFi = parseFloat(document.getElementById('pFi').value.replace(/,/g, '.'));
+                const pWi = parseFloat(document.getElementById('pWi').value.replace(/,/g, '.'));
+                const pFj = parseFloat(document.getElementById('pFj').value.replace(/,/g, '.'));
+                const pWj = parseFloat(document.getElementById('pWj').value.replace(/,/g, '.'));
 
                 // Get dates for carrying cost calculation
                 const pickupDate = new Date(document.getElementById('pickupDate').value);
@@ -842,17 +846,17 @@
                 const dayCount = Math.max(0, Math.floor((deliveryDate - pickupDate) / (1000 * 60 * 60 * 24)));
                 
                 // Carrying costs (all negative as they are costs)
-                const rentRate = parseFloat(document.getElementById('rentRate').value);
-                const sofrRate = parseFloat(document.getElementById('sofrRate').value);
+                const rentRate = parseFloat(document.getElementById('rentRate').value.replace(/,/g, '.'));
+                const sofrRate = parseFloat(document.getElementById('sofrRate').value.replace(/,/g, '.'));
                 const numLots = W / metalData.lotSize;
                 
                 // Rent: rate * weight * days (all days including weekends)
                 const rentCost = -Math.abs(rentRate * W * dayCount);
                 
                 // Fixed fees: per lot (editable)
-                const feesClearing = parseFloat(document.getElementById('feesClearing').value) || 2.40;
-                const feesLME = parseFloat(document.getElementById('feesLME').value) || 1.84;
-                const feesMacquarie = parseFloat(document.getElementById('feesMacquarie').value) || 0.55;
+                const feesClearing = parseFloat(document.getElementById('feesClearing').value.replace(/,/g, '.')) || 2.40;
+                const feesLME = parseFloat(document.getElementById('feesLME').value.replace(/,/g, '.')) || 1.84;
+                const feesMacquarie = parseFloat(document.getElementById('feesMacquarie').value.replace(/,/g, '.')) || 0.55;
                 const fixedFeesPerLot = feesClearing + feesLME + feesMacquarie;
                 const totalFixedFees = -Math.abs(fixedFeesPerLot * numLots);
                 
@@ -1082,13 +1086,44 @@
             XLSX.writeFile(wb, `LME_${metalData.symbol}_Portfolio_${numContracts}contracts_${timestamp}.xlsx`);
         }
 
+        // Normalize number input (accept both comma and dot)
+        function normalizeNumberInput(input) {
+            if (!input) return input;
+            const element = document.getElementById(input);
+            if (element && element.value) {
+                element.value = element.value.replace(/,/g, '.');
+            }
+        }
+
         // Update fees total
         function updateFeesTotal() {
-            const clearing = parseFloat(document.getElementById('feesClearing').value) || 0;
-            const lme = parseFloat(document.getElementById('feesLME').value) || 0;
-            const macquarie = parseFloat(document.getElementById('feesMacquarie').value) || 0;
+            const clearing = parseFloat(document.getElementById('feesClearing').value.replace(/,/g, '.')) || 0;
+            const lme = parseFloat(document.getElementById('feesLME').value.replace(/,/g, '.')) || 0;
+            const macquarie = parseFloat(document.getElementById('feesMacquarie').value.replace(/,/g, '.')) || 0;
             const total = (clearing + lme + macquarie).toFixed(2);
             document.getElementById('feesTotal').textContent = total;
+        }
+
+        // Manual save with visual feedback
+        function manualSaveData() {
+            // Normalize all number inputs first
+            const numberInputs = ['numContracts', 'minWeight', 'maxWeight', 'pFi', 'pWi', 'pFj', 'pWj', 
+                                 'rentRate', 'sofrRate', 'feesClearing', 'feesLME', 'feesMacquarie'];
+            numberInputs.forEach(id => normalizeNumberInput(id));
+            
+            // Save data
+            saveFormData();
+            
+            // Visual feedback
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Saved!';
+            btn.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+            }, 2000);
         }
 
         // Save data to localStorage
