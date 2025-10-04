@@ -1037,6 +1037,18 @@
                             = <strong style="color: #991b1b; font-size: 1.2rem;">$${curr(totalCarryingCosts)}</strong>
                         </div>
 
+                        <div style="background: #dbeafe; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 2px solid #3b82f6;">
+                            <strong style="font-size: 1.1rem; color: #1e40af;">💰 Cash and Carry (Information Only):</strong><br>
+                            <div style="margin-top: 0.5rem; font-size: 0.95rem;">
+                                Future Spread: ($${fmt(pFj)} - $${fmt(pFi)}) × ${fmt(U)} MT = <strong>$${curr(spreadComponent)}</strong><br>
+                                Total Carrying Costs: <strong>$${curr(totalCarryingCosts)}</strong><br>
+                                <div style="border-top: 2px solid #3b82f6; margin-top: 0.5rem; padding-top: 0.5rem;">
+                                    <strong style="font-size: 1.05rem;">Cash and Carry = Future Spread - Carrying Costs</strong><br>
+                                    = <strong style="color: ${(spreadComponent - totalCarryingCosts) >= 0 ? '#059669' : '#dc2626'}; font-size: 1.2rem;">$${curr(spreadComponent - totalCarryingCosts)}</strong>
+                                </div>
+                            </div>
+                        </div>
+
                         <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
                             <strong>Net P&L After Carrying Costs:</strong><br>
                             Trading P&L ($${curr(traderTotal)}) + Carrying Costs ($${curr(totalCarryingCosts)})<br>
