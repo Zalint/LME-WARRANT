@@ -794,8 +794,21 @@
                 return;
             }
 
-            // Show loading
-            document.getElementById('loadingSpinner').style.display = 'block';
+            // Show loading (recreate if it doesn't exist)
+            const resultsPanel = document.getElementById('resultsPanel');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            
+            if (!loadingSpinner) {
+                resultsPanel.innerHTML = `
+                    <div class="loading-spinner" id="loadingSpinner" style="display: block;">
+                        <div class="spinner"></div>
+                        <h3>Calculating...</h3>
+                        <p>Processing your portfolio P&L reconciliation</p>
+                    </div>
+                `;
+            } else {
+                loadingSpinner.style.display = 'block';
+            }
             
             setTimeout(() => {
                 const selectedMetal = document.getElementById('metalSelector').value;
@@ -999,7 +1012,6 @@
                 `;
 
                 document.getElementById('resultsPanel').innerHTML = html;
-                document.getElementById('loadingSpinner').style.display = 'none';
             }, 800);
         }
 
